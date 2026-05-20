@@ -140,7 +140,7 @@ export default function AgreementPage({ params }: AgreementPageProps) {
           Agreement Not Found
         </h1>
         <p className="text-gray-600 dark:text-gray-300 mb-6">
-          The agreement you're looking for doesn't exist.
+          The agreement that you're looking for doesn't exist.
         </p>
         <Button onClick={() => router.push('/agreements')}>
           Back to Agreements
