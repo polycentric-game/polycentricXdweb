@@ -67,9 +67,9 @@
   font-weight: 500;
 }
 
-/* Touch support for mobile */
+/* Touch support for mobile — allow vertical page scroll over the graph */
 .graph-container {
-  touch-action: none;
+  touch-action: pan-y;
 }
 
 /* Graph tooltips */

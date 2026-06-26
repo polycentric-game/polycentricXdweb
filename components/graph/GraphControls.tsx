@@ -185,9 +185,11 @@ export function GraphControls({
               <strong>Mouse controls:</strong>
             </div>
             <div>• Drag background: Pan view</div>
-            <div>• Zoom in/out: Buttons at top-right of graph</div>
+            <div>• Zoom in/out: Buttons at top-right of graph (no pinch on mobile)</div>
             <div>• Tap a node: Focus its connections</div>
             <div>• Tap the same node again: Open role profile</div>
+            <div>• Tap an edge: Focus all edges in that agreement</div>
+            <div>• Tap the same edge again: Open agreement detail</div>
             <div>• Tap empty space: Clear focus</div>
             <div>• Drag nodes: Reposition (layout re-settles on release)</div>
             <div>• Reset layout: Re-run force simulation from circle seed</div>

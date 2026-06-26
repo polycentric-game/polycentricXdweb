@@ -10,8 +10,10 @@ import {
   layoutForLink,
   type ArcLayoutLink,
   type GraphEdgeStyle,
+  graphNodeId,
 } from '@/lib/graphArcEdges';
 import { buildGraphAdjacency, connectedNodeIds } from '@/lib/graphAdjacency';
+import { getPartyRoleIds } from '@/lib/agreementHelpers';
 import {
   buildFilteredGraphEdges,
   type GraphFilterState,
@@ -51,6 +53,8 @@ const REST_LABEL_OPACITY = 0.88;
 const HIGHLIGHT_EDGE_OPACITY = 0.92;
 const DIM_OPACITY = 0.12;
 const ISOLATED_NODE_OPACITY = 0.55;
+const EDGE_STROKE_WIDTH = 2;
+const EDGE_HIT_WIDTH = 28;
 
 /** Scale forces with graph size so dense games spread enough to read edges. */
 function computeLayoutParams(
@@ -233,9 +237,45 @@ export const GameGraph = forwardRef<GameGraphRef, GameGraphProps>(
       const adjacency = buildGraphAdjacency(edges);
       const nodesWithEdges = connectedNodeIds(edges);
 
+      const edgesByAgreement = new Map<string, Set<string>>();
+      for (const edge of edges) {
+        const agreementId = edge.agreementId ?? edge.id;
+        if (!edgesByAgreement.has(agreementId)) {
+          edgesByAgreement.set(agreementId, new Set());
+        }
+        edgesByAgreement.get(agreementId)!.add(edge.id);
+      }
+
+      const partyNodesForAgreement = (agreementId: string): Set<string> => {
+        const agreement = agreements.find((a) => a.id === agreementId);
+        if (agreement) {
+          return new Set(getPartyRoleIds(agreement));
+        }
+        const nodes = new Set<string>();
+        edges
+          .filter((e) => (e.agreementId ?? e.id) === agreementId)
+          .forEach((e) => {
+            nodes.add(graphNodeId(e.source));
+            nodes.add(graphNodeId(e.target));
+          });
+        return nodes;
+      };
+
+      let focusedNodeId: string | null = null;
+      let focusedAgreementId: string | null = null;
+
+      const updateNodeAppearance = () => {
+        node.attr('r', (d) => (d.id === focusedNodeId ? NODE_RADIUS_FOCUSED : NODE_RADIUS));
+        node.attr('stroke-width', (d) => {
+          if (d.id === focusedNodeId) return 3;
+          if (d.id === currentRoleId) return 3;
+          return 2;
+        });
+      };
+
       const applyRestOpacity = () => {
         node.style('opacity', (d) => (nodesWithEdges.has(d.id) ? 1 : ISOLATED_NODE_OPACITY));
-        link.style('opacity', REST_EDGE_OPACITY);
+        linkVisual.style('opacity', REST_EDGE_OPACITY).style('stroke-width', EDGE_STROKE_WIDTH);
         label.style('opacity', (d) =>
           nodesWithEdges.has(d.id) ? REST_LABEL_OPACITY : ISOLATED_NODE_OPACITY
         );
@@ -244,24 +284,60 @@ export const GameGraph = forwardRef<GameGraphRef, GameGraphProps>(
         );
       };
 
-      const applyFocus = (nodeId: string | null) => {
-        if (!nodeId) {
-          applyRestOpacity();
-          return;
-        }
-
+      const applyNodeFocus = (nodeId: string) => {
         const activeNodes = new Set<string>([nodeId]);
         adjacency.neighbors.get(nodeId)?.forEach((n) => activeNodes.add(n));
         const activeEdges = new Set(adjacency.incidentEdges.get(nodeId) ?? []);
 
         node.style('opacity', (d) => (activeNodes.has(d.id) ? 1 : DIM_OPACITY));
-        link.style('opacity', (d) => (activeEdges.has(d.id) ? HIGHLIGHT_EDGE_OPACITY : DIM_OPACITY));
+        linkVisual
+          .style('opacity', (d) => (activeEdges.has(d.id) ? HIGHLIGHT_EDGE_OPACITY : DIM_OPACITY))
+          .style('stroke-width', (d) => (activeEdges.has(d.id) ? 3 : EDGE_STROKE_WIDTH));
         label.style('opacity', (d) => (activeNodes.has(d.id) ? 1 : DIM_OPACITY));
-        subtitleLabel.style('opacity', (d) => (activeNodes.has(d.id) ? REST_LABEL_OPACITY : DIM_OPACITY));
+        subtitleLabel.style('opacity', (d) =>
+          activeNodes.has(d.id) ? REST_LABEL_OPACITY : DIM_OPACITY
+        );
+      };
+
+      const applyAgreementFocus = (agreementId: string) => {
+        const activeEdges = edgesByAgreement.get(agreementId) ?? new Set<string>();
+        const activeNodes = partyNodesForAgreement(agreementId);
+
+        node.style('opacity', (d) => (activeNodes.has(d.id) ? 1 : DIM_OPACITY));
+        linkVisual
+          .style('opacity', (d) => (activeEdges.has(d.id) ? HIGHLIGHT_EDGE_OPACITY : DIM_OPACITY))
+          .style('stroke-width', (d) => (activeEdges.has(d.id) ? 3.5 : EDGE_STROKE_WIDTH));
+        label.style('opacity', (d) => (activeNodes.has(d.id) ? 1 : DIM_OPACITY));
+        subtitleLabel.style('opacity', (d) =>
+          activeNodes.has(d.id) ? REST_LABEL_OPACITY : DIM_OPACITY
+        );
+      };
+
+      const clearFocus = () => {
+        focusedNodeId = null;
+        focusedAgreementId = null;
+        applyRestOpacity();
+        updateNodeAppearance();
+      };
+
+      const setNodeFocus = (nodeId: string) => {
+        focusedNodeId = nodeId;
+        focusedAgreementId = null;
+        applyNodeFocus(nodeId);
+        updateNodeAppearance();
+      };
+
+      const setAgreementFocus = (agreementId: string) => {
+        focusedAgreementId = agreementId;
+        focusedNodeId = null;
+        applyAgreementFocus(agreementId);
+        updateNodeAppearance();
       };
 
       const updateEdgeLayout = () => {
-        link.attr('d', (d) => layoutForLink(d, edgeStyle).path);
+        const pathFor = (d: ArcLayoutLink) => layoutForLink(d, edgeStyle).path;
+        linkHit.attr('d', pathFor);
+        linkVisual.attr('d', pathFor);
       };
 
       const linkForce = d3
@@ -291,7 +367,18 @@ export const GameGraph = forwardRef<GameGraphRef, GameGraphProps>(
       const zoom = d3
         .zoom<SVGSVGElement, unknown>()
         .scaleExtent([0.1, 4])
-        .filter((event) => event.type !== 'wheel')
+        .filter((event) => {
+          if (event.type === 'wheel') return false;
+          const sourceType = event.sourceEvent?.type;
+          if (
+            sourceType === 'touchstart' ||
+            sourceType === 'touchmove' ||
+            sourceType === 'touchend'
+          ) {
+            return false;
+          }
+          return !event.ctrlKey && !event.button;
+        })
         .on('zoom', (event) => {
           g.attr('transform', event.transform);
         });
@@ -309,32 +396,44 @@ export const GameGraph = forwardRef<GameGraphRef, GameGraphProps>(
         .attr('height', height * 8)
         .attr('fill', 'transparent')
         .style('cursor', 'default')
-        .on('click', () => setFocus(null));
-
-      let focusedNodeId: string | null = null;
-
-      const setFocus = (nodeId: string | null) => {
-        focusedNodeId = nodeId;
-        applyFocus(nodeId);
-        node.attr('r', (d) => (d.id === focusedNodeId ? NODE_RADIUS_FOCUSED : NODE_RADIUS));
-        node.attr('stroke-width', (d) => {
-          if (d.id === focusedNodeId) return 3;
-          if (d.id === currentRoleId) return 3;
-          return 2;
-        });
-      };
+        .on('click', () => clearFocus());
 
       const handleDocumentPointer = (event: Event) => {
-        if (!focusedNodeId || !svgRef.current) return;
+        if ((!focusedNodeId && !focusedAgreementId) || !svgRef.current) return;
         const target = event.target as Node | null;
         if (target && svgRef.current.contains(target)) return;
-        setFocus(null);
+        clearFocus();
       };
 
       document.addEventListener('click', handleDocumentPointer, true);
       document.addEventListener('touchend', handleDocumentPointer, true);
 
-      const link = g
+      const handleEdgeTap = (event: Event, d: ArcLayoutLink) => {
+        event.stopPropagation();
+        const agreementId = d.agreementId ?? d.id;
+        if (focusedAgreementId === agreementId) {
+          if (onEdgeClick) onEdgeClick(agreementId);
+          else router.push(`/agreement/${agreementId}`);
+          return;
+        }
+        setAgreementFocus(agreementId);
+      };
+
+      const linkHit = g
+        .append('g')
+        .attr('class', 'graph-link-hits')
+        .selectAll<SVGPathElement, ArcLayoutLink>('path')
+        .data(edges, (d) => d.id)
+        .join('path')
+        .attr('class', 'graph-edge-hit')
+        .attr('fill', 'none')
+        .attr('stroke', 'transparent')
+        .attr('stroke-width', EDGE_HIT_WIDTH)
+        .style('cursor', 'pointer')
+        .style('pointer-events', 'stroke')
+        .on('click', handleEdgeTap);
+
+      const linkVisual = g
         .append('g')
         .attr('class', 'graph-links')
         .selectAll<SVGPathElement, ArcLayoutLink>('path')
@@ -342,7 +441,9 @@ export const GameGraph = forwardRef<GameGraphRef, GameGraphProps>(
         .join('path')
         .attr('class', 'graph-edge')
         .attr('fill', 'none')
-        .attr('stroke-width', 2)
+        .attr('stroke-width', EDGE_STROKE_WIDTH)
+        .style('pointer-events', 'none')
+        .style('transition', OPACITY_TRANSITION)
         .attr('stroke', (d) => {
           switch (d.status) {
             case 'proposed':
@@ -356,14 +457,6 @@ export const GameGraph = forwardRef<GameGraphRef, GameGraphProps>(
             default:
               return '#6B7280';
           }
-        })
-        .style('cursor', 'pointer')
-        .style('transition', OPACITY_TRANSITION)
-        .on('click', (event, d) => {
-          event.stopPropagation();
-          const agreementId = d.agreementId ?? d.id;
-          if (onEdgeClick) onEdgeClick(agreementId);
-          else router.push(`/agreement/${agreementId}`);
         });
 
       const node = g
@@ -386,7 +479,7 @@ export const GameGraph = forwardRef<GameGraphRef, GameGraphProps>(
             else router.push(`/founder/${d.id}`);
             return;
           }
-          setFocus(d.id);
+          setNodeFocus(d.id);
         })
         .call(
           d3
