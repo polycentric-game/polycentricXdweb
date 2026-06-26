@@ -1,3 +1,5 @@
+import type { Archetype, RoleTemplate } from './roleTemplates';
+
 // User (authentication)
 export interface User {
   id: string;
@@ -9,63 +11,68 @@ export interface User {
 // Auth session
 export interface AuthSession {
   userId: string;
-  founderId?: string; // Current founder persona
+  roleId?: string;
+  gameId?: string;
   expiresAt: string;
 }
 
-// Founder (player profile)
-export interface Founder {
+// Multiplayer game session
+export interface Game {
   id: string;
-  userId: string;
-  founderName: string;
-  founderType: string;
-  founderValues: [string, string, string];
-  companyName: string;
-  companyDescription: string;
-  stage: 'Pre-seed' | 'Seed' | 'Series A' | 'Series B' | 'Series C';
-  currentValuationRange: string;
-  revenueStatus: string;
-  businessModel: string;
-  keyAssets: [string, string, string];
-  swapMotivation: string;
-  gapsOrNeeds: [string, string, string];
-  totalEquityAvailable: number; // Percentage (0-100)
-  equitySwapped: number; // Running total of committed equity
+  title: string;
+  createdBy: string;
   createdAt: string;
   updatedAt: string;
+  /** Client-side demo games are view-only and not stored in Supabase. */
+  isDemo?: boolean;
 }
 
-// Agreement version (each revision creates new version)
+// Player role instance (references a preset template within a game)
+export interface Role {
+  id: string;
+  userId: string;
+  gameId?: string;
+  templateId: string;
+  playerName?: string;
+  createdAt: string;
+  updatedAt: string;
+  template?: RoleTemplate;
+}
+
+// Agreement version — narrative-only (Approach A), supports N parties
 export interface AgreementVersion {
-  versionNumber: number; // 0, 1, 2, etc.
-  equityFromCompanyA: number;
-  equityFromCompanyB: number;
+  versionNumber: number;
+  /** roleId → what that role offers */
+  commitments: Record<string, string>;
   notes: string;
-  proposedBy: string; // founderId
+  proposedBy: string; // roleId
   proposedAt: string;
-  approvedBy: string[]; // Array of founderIds who approved
-  signatures?: { [founderId: string]: string }; // Map of founderId to signature hash
+  approvedBy: string[];
+  signatures?: { [roleId: string]: string };
+  /** @deprecated legacy bilateral format — migrated to commitments on read */
+  partyACommitment?: string;
+  partyBCommitment?: string;
 }
 
-// Agreement (bilateral)
 export type AgreementStatus = 'proposed' | 'revised' | 'approved' | 'completed';
 
 export interface Agreement {
-  id: string; // "A1", "A2", etc.
-  founderAId: string;
-  founderBId: string;
+  id: string;
+  /** All participating role IDs (2 to N) */
+  partyRoleIds: string[];
   status: AgreementStatus;
-  initiatedBy: string; // founderId
-  lastRevisedBy: string; // founderId
-  currentVersion: number; // Index into versions array
+  initiatedBy: string;
+  lastRevisedBy: string;
+  currentVersion: number;
   versions: AgreementVersion[];
   createdAt: string;
   updatedAt: string;
-  // VC-related fields (optional for backward compatibility)
+  /** @deprecated first party — kept for DB compat */
+  partyARoleId?: string;
+  /** @deprecated second party — kept for DB compat */
+  partyBRoleId?: string;
   partyAAddress?: string;
   partyBAddress?: string;
-  equityAtoB?: number;
-  equityBtoA?: number;
   canonicalTermsJson?: string;
   termsHash?: string;
   sigA?: string;
@@ -76,9 +83,10 @@ export interface Agreement {
 
 // Graph visualization
 export interface GraphNode {
-  id: string; // founderId
-  founderName: string;
-  companyName: string;
+  id: string;
+  roleName: string;
+  archetype: string;
+  playerName?: string;
   x?: number;
   y?: number;
   fx?: number | null;
@@ -86,7 +94,8 @@ export interface GraphNode {
 }
 
 export interface GraphEdge {
-  id: string; // agreementId
+  id: string;
+  agreementId?: string;
   source: string | GraphNode;
   target: string | GraphNode;
   status: AgreementStatus;
@@ -96,43 +105,52 @@ export interface GraphEdge {
 export interface SignetExport {
   agreementId: string;
   exportedAt: string;
-  parties: {
-    companyA: {
-      name: string;
-      founder: string;
-      equityOffered: number;
-    };
-    companyB: {
-      name: string;
-      founder: string;
-      equityOffered: number;
-    };
-  };
+  parties: Array<{
+    roleId: string;
+    roleName: string;
+    playerName?: string;
+    commitment: string;
+  }>;
   terms: {
-    equitySwapPercentages: {
-      companyAToB: number;
-      companyBToA: number;
-    };
+    commitments: Record<string, string>;
     agreementNotes: string;
   };
-  signatures: {
-    founderA: {
-      name: string;
-      signedAt: string;
-    };
-    founderB: {
-      name: string;
-      signedAt: string;
-    };
-  };
-  legalText: string; // Generated contract text
+  signatures: Array<{
+    roleId: string;
+    name: string;
+    signedAt: string;
+  }>;
+  legalText: string;
 }
 
-// Form validation
 export interface ValidationError {
   field: string;
   message: string;
 }
 
-// Theme
 export type Theme = 'light' | 'dark';
+
+export type { Archetype, RoleTemplate };
+
+// Display helpers
+export function getRoleDisplayName(role: Role): string {
+  if (role.playerName?.trim()) return role.playerName;
+  return role.template?.name ?? 'Unknown role';
+}
+
+/** Short handle for graph node interior labels. */
+export function getGraphNodeHandle(role: Role): string {
+  const handle = getRoleDisplayName(role);
+  const token = handle.split(/\s+/)[0] ?? handle;
+  return token.length > 10 ? `${token.slice(0, 9)}…` : token;
+}
+
+export function getRoleSubtitle(role: Role): string {
+  const template = role.template;
+  if (!template) return '';
+  return template.subtitle ?? template.entityType;
+}
+
+export function getArchetypeForRole(role: Role): Archetype | undefined {
+  return role.template?.archetype;
+}

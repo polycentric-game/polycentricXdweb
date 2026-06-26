@@ -1,72 +1,109 @@
-import { Founder, Agreement, User } from './types';
-import { founderStorage, agreementStorage, userStorage, generateId, generateAgreementId } from './storage';
-import { EXAMPLE_FOUNDERS } from './constants';
+import { Role, Agreement, User, Game } from './types';
+import {
+  roleStorage,
+  roleTemplateStorage,
+  agreementStorage,
+  userStorage,
+  gameStorage,
+  generateId,
+  generateAgreementId,
+} from './storage';
 
-// Initialize sample data if none exists
+const SAMPLE_ROLE_SLUGS = [
+  'protocol-architect',
+  'community-organizer',
+  'patient-protocol-backer',
+];
+
+const DEMO_GAME_TITLE = 'Demo Network';
+
 export async function initializeSampleData(): Promise<void> {
-  const existingFounders = await founderStorage.getAll();
-  const existingAgreements = await agreementStorage.getAll();
-  
-  // Only initialize if no data exists
-  if (existingFounders.length === 0 && existingAgreements.length === 0) {
-    // Create sample users first (required for foreign key constraint)
-    const sampleUsers: User[] = [];
-    for (let i = 0; i < EXAMPLE_FOUNDERS.length; i++) {
-      // Generate a valid Ethereum address (42 characters: 0x + 40 hex chars)
-      const addressBytes = Array.from({ length: 20 }, () => Math.floor(Math.random() * 256));
-      const ethereumAddress = '0x' + addressBytes.map(b => b.toString(16).padStart(2, '0')).join('');
-      
-      const user: User = {
-        id: generateId(),
-        ethereumAddress,
-        createdAt: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString(),
-      };
-      const savedUser = await userStorage.save(user);
-      sampleUsers.push(savedUser);
-    }
-    
-    // Create sample founders with valid user IDs
-    const sampleFounders: Founder[] = [];
-    for (let index = 0; index < EXAMPLE_FOUNDERS.length; index++) {
-      const example = EXAMPLE_FOUNDERS[index];
-      const founder: Founder = {
-        ...example,
-        id: generateId(),
-        userId: sampleUsers[index].id, // Use the actual user ID from created user
-        createdAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString(), // Stagger creation dates
-        updatedAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString(),
-      };
-      const savedFounder = await founderStorage.save(founder);
-      sampleFounders.push(savedFounder);
-    }
-    
-    // Create a sample agreement between Alex and Maya
-    if (sampleFounders.length >= 2) {
-      const agreementId = await generateAgreementId();
-      const agreement: Agreement = {
-        id: agreementId,
-        founderAId: sampleFounders[0].id, // Alex
-        founderBId: sampleFounders[1].id, // Maya
-        status: 'proposed',
-        initiatedBy: sampleFounders[0].id,
-        lastRevisedBy: sampleFounders[0].id,
-        currentVersion: 0,
-        versions: [{
-          versionNumber: 0,
-          equityFromCompanyA: 5, // Alex offers 5%
-          equityFromCompanyB: 7, // Maya offers 7%
-          notes: 'Looking to combine AI analytics with DeFi insights for better risk assessment and market expansion.',
-          proposedBy: sampleFounders[0].id,
-          proposedAt: new Date(Date.now() - (2 * 24 * 60 * 60 * 1000)).toISOString(),
-          approvedBy: [sampleFounders[0].id], // Alex auto-approved
-        }],
-        createdAt: new Date(Date.now() - (2 * 24 * 60 * 60 * 1000)).toISOString(),
-        updatedAt: new Date(Date.now() - (2 * 24 * 60 * 60 * 1000)).toISOString(),
-      };
-      
-      await agreementStorage.save(agreement);
-    }
-    
-    console.log('Sample data initialized with', sampleFounders.length, 'founders and 1 agreement');
+  const existingGames = await gameStorage.getAll();
+  const demoGame = existingGames.find((g) => g.title === DEMO_GAME_TITLE);
+
+  if (demoGame) {
+    const demoRoles = await roleStorage.getByGameId(demoGame.id);
+    if (demoRoles.length > 0) return;
   }
+
+  const existingRoles = await roleStorage.getAll();
+  const existingAgreements = await agreementStorage.getAll();
+
+  if (existingRoles.length > 0 || existingAgreements.length > 0) {
+    return;
+  }
+
+  const templates = await roleTemplateStorage.getAll();
+  const sampleTemplates = SAMPLE_ROLE_SLUGS.map((slug) =>
+    templates.find((t) => t.slug === slug)
+  ).filter(Boolean) as (typeof templates)[number][];
+
+  if (sampleTemplates.length < 2) return;
+
+  const sampleUsers: User[] = [];
+  for (let i = 0; i < sampleTemplates.length; i++) {
+    const user: User = {
+      id: generateId(),
+      email: `demo-player-${i + 1}@example.com`,
+      createdAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
+    };
+    sampleUsers.push(await userStorage.save(user));
+  }
+
+  const now = new Date().toISOString();
+  const demoGameRecord: Game = await gameStorage.save({
+    id: generateId(),
+    title: DEMO_GAME_TITLE,
+    createdBy: sampleUsers[0].id,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  const sampleRoles: Role[] = [];
+  for (let i = 0; i < sampleTemplates.length; i++) {
+    const template = sampleTemplates[i];
+    const roleNow = new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString();
+    const role: Role = {
+      id: generateId(),
+      userId: sampleUsers[i].id,
+      gameId: demoGameRecord.id,
+      templateId: template.id,
+      createdAt: roleNow,
+      updatedAt: roleNow,
+    };
+    sampleRoles.push(await roleStorage.save(role));
+  }
+
+  if (sampleRoles.length >= 2) {
+    const agreementId = await generateAgreementId();
+    const agreement: Agreement = {
+      id: agreementId,
+      partyRoleIds: [sampleRoles[0].id, sampleRoles[1].id],
+      status: 'proposed',
+      initiatedBy: sampleRoles[0].id,
+      lastRevisedBy: sampleRoles[0].id,
+      currentVersion: 0,
+      versions: [
+        {
+          versionNumber: 0,
+          commitments: {
+            [sampleRoles[0].id]:
+              'Provide interoperability standards and reference implementation support.',
+            [sampleRoles[1].id]:
+              'Mobilize community adoption and onboarding for the shared protocol layer.',
+          },
+          notes:
+            'Combine technical standards work with grassroots adoption to prevent ecosystem fragmentation.',
+          proposedBy: sampleRoles[0].id,
+          proposedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          approvedBy: [sampleRoles[0].id],
+        },
+      ],
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+    await agreementStorage.save(agreement);
+  }
+
+  console.log('Sample data initialized with demo game and', sampleRoles.length, 'roles');
 }

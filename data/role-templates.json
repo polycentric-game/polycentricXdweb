@@ -1,0 +1,1470 @@
+{
+  "version": 1,
+  "scenario": "Nomad Infrastructure",
+  "archetypes": [
+    "funder",
+    "builder",
+    "organizer",
+    "storyteller",
+    "strategist"
+  ],
+  "roles": [
+    {
+      "slug": "patient-protocol-backer",
+      "name": "Patient Protocol Backer",
+      "subtitle": "Long-Horizon Capital Partner",
+      "entityType": "Reformed Venture Firm",
+      "archetype": "funder",
+      "isDisruptive": false,
+      "backstory": "A former growth-stage investor who watched three portfolio companies get enclosed by platforms and now funds open dweb infrastructure on decade-long horizons.",
+      "expandedBackstory": "After a career chasing 10x exits, this partner had a slow change of heart watching every successful bet get acquired, walled off, or rent-extracted by a larger platform. They raised a new fund explicitly structured for patient infrastructure capital — but the limited partners who wrote the checks still expect to see their money returned eventually. They are trusted by builders for taking the long view and resented by some for the strings that quietly remain attached.",
+      "values": [
+        "Durability",
+        "Aligned incentives",
+        "Infrastructure-first",
+        "Long-term thinking"
+      ],
+      "goals": [
+        "Fund core protocol layers that won't be enclosed",
+        "Demonstrate that patient capital can sustain dweb infra",
+        "Build a portfolio of interoperable, non-rivalrous projects"
+      ],
+      "obligations": [
+        "Must eventually return capital to LPs",
+        "Bound by fund thesis and reporting cadence",
+        "Cannot fund projects with no sustainability path"
+      ],
+      "capabilities": [
+        "Multi-year funding commitments",
+        "Network access to other aligned funders",
+        "Technical due diligence"
+      ],
+      "intellectualProperty": [
+        "Patient-capital fund structures",
+        "Infrastructure investment frameworks"
+      ],
+      "rivalrousResources": [
+        "Deployable capital",
+        "Diligence and partner attention"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate to High",
+        "institutionalTrust&Power": "High",
+        "politicalRisk": "Low to Moderate",
+        "financialAccess": "High",
+        "businessOrientation": "Mission-aligned, infrastructure-first"
+      },
+      "sortOrder": 1
+    },
+    {
+      "slug": "public-goods-foundation-head",
+      "name": "Public-Goods Foundation Head",
+      "subtitle": "Open Infrastructure Grantmaker",
+      "entityType": "Philanthropic Foundation",
+      "archetype": "funder",
+      "isDisruptive": false,
+      "backstory": "Runs a grant program funding open-source dweb infrastructure. Generous and unencumbered by returns, but answerable to a board and donors who want measurable impact.",
+      "expandedBackstory": "A career in institutional philanthropy gave them a sharp eye for which projects sustain themselves and which collapse the moment the grant ends. They built a program dedicated to the unglamorous middle layer of the dweb — the maintainers, the standards, the documentation. Their freedom from profit pressure is real, but it's replaced by a different master: the donor narrative, the annual report, the deliverable that proves the money did something legible.",
+      "values": [
+        "Public goods",
+        "Open source",
+        "Accountability",
+        "Equitable access"
+      ],
+      "goals": [
+        "Sustain critical infrastructure that markets won't fund",
+        "Fund maintainers, not just founders",
+        "Build a defensible case for ongoing donor support"
+      ],
+      "obligations": [
+        "Bound by grant deliverables and reporting",
+        "Must show measurable, fundable impact",
+        "Cannot favor any single project unfairly"
+      ],
+      "capabilities": [
+        "Grant disbursement",
+        "Convening power",
+        "Impact evaluation frameworks"
+      ],
+      "intellectualProperty": [
+        "Public-goods funding playbooks",
+        "Maintainer-support program designs"
+      ],
+      "rivalrousResources": [
+        "Grant budget",
+        "Program-officer time"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "High",
+        "politicalRisk": "Low",
+        "financialAccess": "Moderate to High (donor-dependent)",
+        "businessOrientation": "Mission-driven, public-interest"
+      },
+      "sortOrder": 2
+    },
+    {
+      "slug": "mutual-aid-treasury-steward",
+      "name": "Mutual-Aid Treasury Steward",
+      "subtitle": "Commons Fund Keeper",
+      "entityType": "Community-Pooled Fund",
+      "archetype": "funder",
+      "isDisruptive": false,
+      "backstory": "Manages a fund pooled directly from a dweb community's members. No exit logic, no donors — but limited capital and a hard mandate to serve members first.",
+      "expandedBackstory": "They emerged from a tenant-union-style organizing tradition and brought its financial discipline to the dweb: dues in, transparent allocation out, every member with a say. The treasury is small but uniquely legitimate — it answers to no outside power. That legitimacy is also its constraint: the steward cannot deploy a cent toward anything members haven't agreed serves them, no matter how strategically promising it might be to the wider ecosystem.",
+      "values": [
+        "Mutual aid",
+        "Member sovereignty",
+        "Transparency",
+        "Solidarity"
+      ],
+      "goals": [
+        "Fund infrastructure the community directly depends on",
+        "Keep allocation decisions democratic",
+        "Prove member-pooled capital is viable at scale"
+      ],
+      "obligations": [
+        "Must serve members' direct interests first",
+        "Bound by participatory budgeting process",
+        "Full public transparency on every allocation"
+      ],
+      "capabilities": [
+        "Participatory allocation",
+        "Deep community trust",
+        "Small but unconditional capital"
+      ],
+      "intellectualProperty": [
+        "Participatory treasury governance models",
+        "Member-dues pooling mechanisms"
+      ],
+      "rivalrousResources": [
+        "Limited treasury balance",
+        "Member attention and voting bandwidth"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Low to Moderate",
+        "institutionalTrust&Power": "Moderate (high within community)",
+        "politicalRisk": "Low",
+        "financialAccess": "Low",
+        "businessOrientation": "Commons-centered, member-first"
+      },
+      "sortOrder": 3
+    },
+    {
+      "slug": "growth-venture-capitalist",
+      "name": "Growth Venture Capitalist",
+      "subtitle": "Upside Maximizer",
+      "entityType": "Returns-Driven Venture Fund",
+      "archetype": "funder",
+      "isDisruptive": true,
+      "backstory": "A sharp, well-capitalized VC who genuinely believes the dweb will win — and intends to own a meaningful slice of the upside when it does. Pushes tokenization, growth, and clean exits.",
+      "expandedBackstory": "Unlike the reformed patient backer, this investor never had the crisis of faith. They see the platform-State's decline as the largest value-creation event of the decade and the dweb as the vehicle. They are not a villain — their capital is real and can move projects from prototype to production overnight. But every term sheet bends a project toward capturable value, token markets, and an eventual liquidity event, which is precisely the logic that produced the platform-State in the first place.",
+      "values": [
+        "Returns",
+        "Velocity",
+        "Market-making",
+        "Scale"
+      ],
+      "goals": [
+        "Back the dweb projects most likely to dominate their category",
+        "Engineer token models with strong upside",
+        "Secure governance influence proportional to investment"
+      ],
+      "obligations": [
+        "Bound by fund performance mandates to LPs",
+        "Must report returns on schedule",
+        "Cannot back projects with no value-capture path"
+      ],
+      "capabilities": [
+        "Large, fast capital deployment",
+        "Token and market structuring",
+        "Aggressive growth playbooks"
+      ],
+      "intellectualProperty": [
+        "Tokenomics and go-to-market models",
+        "Cap-table and governance-stake structuring"
+      ],
+      "rivalrousResources": [
+        "Large capital reserves",
+        "Governance votes and board seats"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "High",
+        "institutionalTrust&Power": "High",
+        "politicalRisk": "Low to Moderate",
+        "financialAccess": "Very High",
+        "businessOrientation": "Growth and returns-driven"
+      },
+      "sortOrder": 4
+    },
+    {
+      "slug": "retroactive-public-goods-funder",
+      "name": "Retroactive Public-Goods Funder",
+      "subtitle": "Impact Settler",
+      "entityType": "RetroPGF Program",
+      "archetype": "funder",
+      "isDisruptive": false,
+      "backstory": "Funds what has already proven it works, rewarding demonstrated impact rather than promises. Brilliant for sustaining winners, useless for unproven bets.",
+      "expandedBackstory": "A reaction against the waste of speculative grantmaking, this funder pioneered retroactive public-goods funding in the dweb: build first, prove the value, and the reward follows. It has reliably channeled large sums to maintainers and tools that the ecosystem actually came to depend on. Its blind spot is structural — nothing unproven, experimental, or early ever qualifies, so the most fragile and most important early-stage work goes unfunded until it's already survived without help.",
+      "values": [
+        "Proven impact",
+        "Efficiency",
+        "Meritocracy",
+        "Accountability"
+      ],
+      "goals": [
+        "Reward infrastructure that demonstrably mattered",
+        "Build sustainable incentive loops for maintainers",
+        "Make funding outcomes measurable and fair"
+      ],
+      "obligations": [
+        "Can only fund retroactively against evidence",
+        "Bound by impact-assessment methodology",
+        "Must justify every allocation publicly"
+      ],
+      "capabilities": [
+        "Impact measurement at scale",
+        "Large retroactive disbursements",
+        "Reputation-weighted evaluation"
+      ],
+      "intellectualProperty": [
+        "Retroactive funding mechanisms",
+        "Impact-quantification frameworks"
+      ],
+      "rivalrousResources": [
+        "Funding rounds (periodic, finite)",
+        "Evaluator attention"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Low (funds only proven work)",
+        "institutionalTrust&Power": "High",
+        "politicalRisk": "Low",
+        "financialAccess": "High",
+        "businessOrientation": "Outcome-driven, efficiency-first"
+      },
+      "sortOrder": 5
+    },
+    {
+      "slug": "sovereign-wealth-civic-fund-officer",
+      "name": "Sovereign-Wealth / Civic Fund Officer",
+      "subtitle": "Statecraft Capital",
+      "entityType": "State-Adjacent Investment Vehicle",
+      "archetype": "funder",
+      "isDisruptive": false,
+      "backstory": "Deploys patient public capital on behalf of a nation, region, or civic bloc seeking digital sovereignty from the platform-State. Deep pockets, long horizons, and political strings.",
+      "expandedBackstory": "Their mandate comes from a government or civic bloc that has concluded its dependence on foreign platforms is a strategic vulnerability. They can write the largest checks in the room and wait the longest for returns — but every investment must serve the sponsor's interest in digital sovereignty and remain legible to public auditors. Builders covet the capital and fear the conditions: data localization, jurisdictional control, and the slow gravity of state priorities.",
+      "values": [
+        "Digital sovereignty",
+        "Strategic autonomy",
+        "Public accountability",
+        "Resilience"
+      ],
+      "goals": [
+        "Fund dweb infrastructure that reduces platform dependence",
+        "Anchor critical infrastructure within trusted jurisdictions",
+        "Demonstrate public capital can build durable alternatives"
+      ],
+      "obligations": [
+        "Bound by sponsor's strategic mandate",
+        "Must satisfy public audit and legibility requirements",
+        "Subject to political and procurement constraints"
+      ],
+      "capabilities": [
+        "Very large, very patient capital",
+        "Procurement and policy leverage",
+        "Jurisdictional anchoring"
+      ],
+      "intellectualProperty": [
+        "Sovereign digital-infrastructure strategies",
+        "Public-investment compliance frameworks"
+      ],
+      "rivalrousResources": [
+        "Large capital allocations",
+        "Political and procurement access"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Very High",
+        "politicalRisk": "Moderate to High (politically exposed)",
+        "financialAccess": "Very High",
+        "businessOrientation": "Sovereignty-driven, public-strategic"
+      },
+      "sortOrder": 6
+    },
+    {
+      "slug": "protocol-architect",
+      "name": "Protocol Architect",
+      "subtitle": "Interop Layer Designer",
+      "entityType": "Core Protocol Maintainer",
+      "archetype": "builder",
+      "isDisruptive": false,
+      "backstory": "Designs the foundational interoperability layer that other dweb projects build on. Values elegant, durable standards and resists the fragmentation that fractures the ecosystem.",
+      "expandedBackstory": "A consensus researcher who chose to work on the boring, load-bearing parts of the stack — the addressing, the data formats, the bridges — because that's where lock-in or freedom is actually decided. They carry the conviction that an ecosystem with five incompatible standards is just five small platform-States in waiting. This makes them a natural coordinator and an occasional obstacle: their insistence on getting the standard right can read as gatekeeping to builders who just want to ship.",
+      "values": [
+        "Interoperability",
+        "Elegance",
+        "Standards",
+        "Composability"
+      ],
+      "goals": [
+        "Establish a shared interoperability standard",
+        "Prevent ecosystem fragmentation",
+        "Keep the core layer credibly neutral"
+      ],
+      "obligations": [
+        "Bound by open specification process",
+        "Must maintain backward compatibility",
+        "Cannot favor any single implementer"
+      ],
+      "capabilities": [
+        "Protocol and standards design",
+        "Reference implementation",
+        "Technical convening"
+      ],
+      "intellectualProperty": [
+        "Interoperability specifications",
+        "Reference protocol implementations"
+      ],
+      "rivalrousResources": [
+        "Core-developer time",
+        "Standards-process bandwidth"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Moderate to High",
+        "politicalRisk": "Low",
+        "financialAccess": "Moderate (grant/foundation reliant)",
+        "businessOrientation": "Standards-first, neutral infrastructure"
+      },
+      "sortOrder": 7
+    },
+    {
+      "slug": "offline-first-app-developer",
+      "name": "Offline-First App Developer",
+      "subtitle": "Nomad Client Builder",
+      "entityType": "Application Studio",
+      "archetype": "builder",
+      "isDisruptive": false,
+      "backstory": "Ships genuinely usable apps for low-connectivity and on-the-move users — the nomads the scenario centers. Pragmatic, fast, and willing to cut corners the architects hate.",
+      "expandedBackstory": "They learned their trade building for places where bandwidth is scarce, intermittent, or surveilled, and they have no patience for elegant protocols that assume a fat, free pipe. Their apps sync opportunistically, degrade gracefully, and meet users where they actually are. The trade-off is that shipping for real conditions sometimes means routing around the \"correct\" standard, which puts them in recurring friction with the protocol architect and anyone who prizes purity over a working product.",
+      "values": [
+        "Usability",
+        "Resilience",
+        "Pragmatism",
+        "Access"
+      ],
+      "goals": [
+        "Ship apps that work offline and on the move",
+        "Get real nomadic users onto the dweb",
+        "Prove the dweb can match platform UX"
+      ],
+      "obligations": [
+        "Must keep apps working in degraded conditions",
+        "Accountable to an active user base",
+        "Bound by app-store and distribution realities"
+      ],
+      "capabilities": [
+        "Offline-first engineering",
+        "Cross-platform app development",
+        "Real-world UX testing"
+      ],
+      "intellectualProperty": [
+        "Offline-sync and local-first patterns",
+        "Resilient client architectures"
+      ],
+      "rivalrousResources": [
+        "Engineering team capacity",
+        "User-testing channels"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate to High",
+        "institutionalTrust&Power": "Low to Moderate",
+        "politicalRisk": "Low to Moderate",
+        "financialAccess": "Moderate",
+        "businessOrientation": "Product-first, adoption-driven"
+      },
+      "sortOrder": 8
+    },
+    {
+      "slug": "infrastructure-maintainer",
+      "name": "Infrastructure Maintainer",
+      "subtitle": "Relay & Bridge Keeper",
+      "entityType": "Independent Operator / Small Collective",
+      "archetype": "builder",
+      "isDisruptive": false,
+      "backstory": "Keeps the relays, bridges, indexers, and storage alive — the invisible labor everyone depends on and almost no one funds. Chronically under-resourced and quietly indispensable.",
+      "expandedBackstory": "They run the unglamorous machinery that makes \"decentralized\" actually work: the relays that pass messages, the bridges between networks, the storage that doesn't disappear. When it works, no one notices; when it breaks, the whole ecosystem feels it. They carry a long-term load that funders rarely reward and founders rarely thank, and they hold real, underappreciated leverage — because if they walk away, large parts of the network simply go dark.",
+      "values": [
+        "Reliability",
+        "Stewardship",
+        "Sustainability",
+        "Quiet competence"
+      ],
+      "goals": [
+        "Keep critical infrastructure running",
+        "Secure sustainable funding for maintenance",
+        "Distribute operational load so it isn't fragile"
+      ],
+      "obligations": [
+        "Must maintain uptime commitments",
+        "Bound by the dependencies others have built on them",
+        "Limited by personal/collective capacity"
+      ],
+      "capabilities": [
+        "Operations and reliability engineering",
+        "Incident response",
+        "Infrastructure hosting"
+      ],
+      "intellectualProperty": [
+        "Operational runbooks",
+        "Reliability and monitoring tooling"
+      ],
+      "rivalrousResources": [
+        "Maintainer hours (scarce)",
+        "Server and bandwidth capacity"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Low to Moderate",
+        "institutionalTrust&Power": "Low (high dependency on them)",
+        "politicalRisk": "Low",
+        "financialAccess": "Low",
+        "businessOrientation": "Maintenance-first, sustainability-seeking"
+      },
+      "sortOrder": 9
+    },
+    {
+      "slug": "identity-privacy-cryptographer",
+      "name": "Identity & Privacy Cryptographer",
+      "subtitle": "Self-Sovereign ID Builder",
+      "entityType": "Cryptography Lab",
+      "archetype": "builder",
+      "isDisruptive": false,
+      "backstory": "Builds self-sovereign identity and strong privacy guarantees into the dweb. Holds a hard line on privacy that clashes with anyone needing transparency or legibility.",
+      "expandedBackstory": "They came up through privacy research and watched identity become the platform-State's primary instrument of enclosure — the thing that ties a person to a territory they can be controlled within. Their work gives users portable, unlinkable, self-owned identity. That commitment is non-negotiable and frequently inconvenient: it complicates accountability, frustrates policy actors who need legibility, and resists the transparency that some governance and journalism roles depend on.",
+      "values": [
+        "Privacy",
+        "Self-sovereignty",
+        "Cryptographic integrity",
+        "Autonomy"
+      ],
+      "goals": [
+        "Ship portable self-sovereign identity",
+        "Make privacy the default, not an option",
+        "Resist any re-introduction of identity-based enclosure"
+      ],
+      "obligations": [
+        "Must not weaken cryptographic guarantees",
+        "Bound by formal security review",
+        "Cannot build in backdoors or surveillance hooks"
+      ],
+      "capabilities": [
+        "Applied cryptography",
+        "Identity protocol design",
+        "Privacy threat modeling"
+      ],
+      "intellectualProperty": [
+        "Self-sovereign identity schemes",
+        "Zero-knowledge primitives and libraries"
+      ],
+      "rivalrousResources": [
+        "Cryptographer attention",
+        "Audit and review bandwidth"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Moderate",
+        "politicalRisk": "Moderate to High (privacy under regulatory pressure)",
+        "financialAccess": "Moderate",
+        "businessOrientation": "Privacy-first, principle-driven"
+      },
+      "sortOrder": 10
+    },
+    {
+      "slug": "hardware-mesh-networker",
+      "name": "Hardware / Mesh Networker",
+      "subtitle": "Physical Layer Liberator",
+      "entityType": "Mesh & Device Cooperative",
+      "archetype": "builder",
+      "isDisruptive": false,
+      "backstory": "Builds the physical layer — mesh nodes, off-grid radios, refurbished devices — that frees the dweb from the platform-State's pipes and data centers.",
+      "expandedBackstory": "They understand that \"decentralized\" software running on three cloud providers and two undersea cables isn't decentralized at all. Their work is the literal substrate of nomad infrastructure: networks that move with people, run off-grid, and answer to no carrier or hyperscaler. It's slow, physical, capital-hungry work that doesn't scale like software, but it's the only thing that makes true exit from the platform-State possible rather than rhetorical.",
+      "values": [
+        "Physical sovereignty",
+        "Resilience",
+        "Self-reliance",
+        "Decentralization-in-fact"
+      ],
+      "goals": [
+        "Build mesh networks independent of incumbent carriers",
+        "Get resilient hardware into nomadic communities",
+        "Prove the dweb can run on its own physical layer"
+      ],
+      "obligations": [
+        "Bound by spectrum and hardware regulation",
+        "Must maintain physical deployments",
+        "Limited by manufacturing and logistics"
+      ],
+      "capabilities": [
+        "Mesh network deployment",
+        "Hardware design and refurbishment",
+        "Off-grid power and connectivity"
+      ],
+      "intellectualProperty": [
+        "Open hardware designs",
+        "Mesh routing implementations"
+      ],
+      "rivalrousResources": [
+        "Physical devices and components",
+        "Deployment crew time"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate to High",
+        "institutionalTrust&Power": "Low",
+        "politicalRisk": "Moderate (spectrum/regulatory exposure)",
+        "financialAccess": "Low to Moderate (capital-intensive)",
+        "businessOrientation": "Infrastructure-in-fact, cooperative"
+      },
+      "sortOrder": 11
+    },
+    {
+      "slug": "stealth-platform-defector",
+      "name": "Stealth Platform Defector",
+      "subtitle": "Reformed Hyperscaler Engineer",
+      "entityType": "Ex-Big-Tech Principal Engineer",
+      "archetype": "builder",
+      "isDisruptive": true,
+      "backstory": "An elite engineer who left a dominant platform to build the dweb. Brings world-class skills — and the deep, unexamined habits of centralization that built the platform-State.",
+      "expandedBackstory": "They can architect systems at a scale almost no one else in the room can, and they came to the dweb sincerely, disillusioned with what they helped build. The danger is in their reflexes: the defaults they reach for — a central coordinator \"just for now,\" a managed service \"for reliability,\" a metrics pipeline \"to understand users\" — are exactly the patterns that quietly recentralize a decentralized system. Their contribution is enormous and their instincts are a standing risk the others must watch.",
+      "values": [
+        "Engineering excellence",
+        "Scale",
+        "Reliability",
+        "Redemption"
+      ],
+      "goals": [
+        "Build dweb systems that perform at platform scale",
+        "Apply hard-won infrastructure expertise to the cause",
+        "Outdo the platforms at their own game"
+      ],
+      "obligations": [
+        "Bound by non-competes and IP from former employer",
+        "Must keep systems performant and reliable",
+        "Reputation tied to delivering at scale"
+      ],
+      "capabilities": [
+        "Large-scale systems architecture",
+        "Performance and reliability engineering",
+        "Deep platform-internals knowledge"
+      ],
+      "intellectualProperty": [
+        "Scalable infrastructure patterns",
+        "High-performance system designs"
+      ],
+      "rivalrousResources": [
+        "Rare senior-engineering capacity",
+        "Architectural decision influence"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate to High",
+        "institutionalTrust&Power": "Moderate to High",
+        "politicalRisk": "Low to Moderate (former-employer exposure)",
+        "financialAccess": "Moderate to High",
+        "businessOrientation": "Excellence-driven, scale-oriented"
+      },
+      "sortOrder": 12
+    },
+    {
+      "slug": "data-commons-engineer",
+      "name": "Data-Commons Engineer",
+      "subtitle": "Shared Data Trust Builder",
+      "entityType": "Data Trust / Commons Project",
+      "archetype": "builder",
+      "isDisruptive": false,
+      "backstory": "Builds shared data trusts and storage commons with governance baked in — so collectively-held data can't be quietly enclosed. Powerful, principled, and slow.",
+      "expandedBackstory": "They treat data as the territory the platform-State most wants to enclose, and they build the alternative: pooled data held under explicit collective governance, with access rules, consent, and provenance enforced at the infrastructure level. The result is genuinely uncapturable shared data — and it is painstaking to build, because every technical decision is also a governance decision that the participating communities must actually agree to. Speed is the price of legitimacy.",
+      "values": [
+        "Collective ownership",
+        "Consent",
+        "Provenance",
+        "Anti-enclosure"
+      ],
+      "goals": [
+        "Build governed data commons that resist capture",
+        "Embed consent and provenance in the data layer",
+        "Enable communities to pool data on their own terms"
+      ],
+      "obligations": [
+        "Bound by participating communities' governance",
+        "Must enforce consent and access rules",
+        "Cannot release data outside agreed terms"
+      ],
+      "capabilities": [
+        "Data-trust architecture",
+        "Access-control and provenance systems",
+        "Governance-aware engineering"
+      ],
+      "intellectualProperty": [
+        "Data-commons governance frameworks",
+        "Consent and provenance tooling"
+      ],
+      "rivalrousResources": [
+        "Engineering capacity",
+        "Governance-facilitation bandwidth"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Moderate",
+        "politicalRisk": "Moderate (data regulation exposure)",
+        "financialAccess": "Moderate",
+        "businessOrientation": "Commons-first, governance-heavy"
+      },
+      "sortOrder": 13
+    },
+    {
+      "slug": "community-organizer",
+      "name": "Community Organizer",
+      "subtitle": "Adoption Steward",
+      "entityType": "Grassroots Community Lead",
+      "archetype": "organizer",
+      "isDisruptive": false,
+      "backstory": "Onboards and represents an actual, living user community on the dweb. Holds the legitimacy and adoption everyone else needs — and deeply distrusts technocratic capture.",
+      "expandedBackstory": "They built their community the slow way: trust, showing up, solving real problems, year after year. That community is now exactly the prize that builders, funders, and marketers all want a piece of — a real population of users, not a projection on a pitch deck. The organizer guards that legitimacy fiercely, because they've watched communities get used as growth fuel and then abandoned. Any agreement that touches their people has to clear a high bar of reciprocity.",
+      "values": [
+        "Community sovereignty",
+        "Reciprocity",
+        "Trust",
+        "Bottom-up power"
+      ],
+      "goals": [
+        "Get the community onto durable, non-extractive infrastructure",
+        "Ensure the community shapes the tools it uses",
+        "Protect members from capture and extraction"
+      ],
+      "obligations": [
+        "Accountable to community members first",
+        "Must maintain trust earned over years",
+        "Cannot commit the community without its consent"
+      ],
+      "capabilities": [
+        "Community mobilization",
+        "Onboarding and education",
+        "On-the-ground feedback channels"
+      ],
+      "intellectualProperty": [
+        "Organizing and onboarding playbooks",
+        "Community trust relationships"
+      ],
+      "rivalrousResources": [
+        "An actual user base (highly sought)",
+        "Organizer time and credibility"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Moderate (high within community)",
+        "politicalRisk": "Low to Moderate",
+        "financialAccess": "Low",
+        "businessOrientation": "Community-first, non-extractive"
+      },
+      "sortOrder": 14
+    },
+    {
+      "slug": "migrant-nomad-user-advocate",
+      "name": "Migrant / Nomad User Advocate",
+      "subtitle": "Voice of the Displaced",
+      "entityType": "User Advocacy Collective",
+      "archetype": "organizer",
+      "isDisruptive": false,
+      "backstory": "Speaks for the displaced, on-the-move users at the heart of the scenario — people pushed into nomad patterns by enclosure. Needs accessibility and resilience above all.",
+      "expandedBackstory": "Their constituency is the population the whole game is nominally for: people whose digital lives have been disrupted, deplatformed, or pushed across borders by the platform-State's vectors of enclosure. They translate the lived needs of those users — intermittent connectivity, low-cost devices, no stable address, high surveillance risk — into demands on builders who might otherwise design for themselves. They're a conscience and a constraint: a beautiful protocol that the displaced can't actually use fails the entire premise.",
+      "values": [
+        "Accessibility",
+        "Dignity",
+        "Resilience",
+        "Inclusion"
+      ],
+      "goals": [
+        "Make the dweb usable for the genuinely displaced",
+        "Keep accessibility and cost central to design",
+        "Ensure nomadic users aren't an afterthought"
+      ],
+      "obligations": [
+        "Accountable to a vulnerable constituency",
+        "Must represent needs faithfully, not romanticize",
+        "Bound by the real constraints of users' lives"
+      ],
+      "capabilities": [
+        "User-needs research with hard-to-reach populations",
+        "Accessibility advocacy",
+        "Trust within displaced communities"
+      ],
+      "intellectualProperty": [
+        "Lived-needs research and personas",
+        "Accessibility requirement frameworks"
+      ],
+      "rivalrousResources": [
+        "Access to and trust of displaced users",
+        "Advocacy bandwidth"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Low to Moderate",
+        "institutionalTrust&Power": "Low",
+        "politicalRisk": "Moderate (constituency is politically exposed)",
+        "financialAccess": "Low",
+        "businessOrientation": "Advocacy-first, access-driven"
+      },
+      "sortOrder": 15
+    },
+    {
+      "slug": "cooperative-operator",
+      "name": "Cooperative Operator",
+      "subtitle": "Worker & Data Co-op Lead",
+      "entityType": "Platform Cooperative",
+      "archetype": "organizer",
+      "isDisruptive": false,
+      "backstory": "Runs a worker- and data-owned cooperative already using dweb tools in production. Wants interoperability — strictly on the co-op's own democratic governance terms.",
+      "expandedBackstory": "Their cooperative is living proof that an alternative to the platform-State can pay people's rent: members own the platform, the data, and the surplus. Because it actually works and actually sustains livelihoods, they have hard requirements no idealist can wave away. They'll integrate with the wider dweb, but never in a way that compromises member ownership or hands governance to outsiders. They are a model and a tough negotiator, bringing a working example and a non-negotiable bottom line.",
+      "values": [
+        "Worker ownership",
+        "Democratic governance",
+        "Sustainability",
+        "Solidarity"
+      ],
+      "goals": [
+        "Interoperate with the dweb without losing autonomy",
+        "Demonstrate cooperatives as a durable model",
+        "Federate with aligned co-ops"
+      ],
+      "obligations": [
+        "Bound by cooperative bylaws and member votes",
+        "Must protect member livelihoods",
+        "Cannot cede governance to external parties"
+      ],
+      "capabilities": [
+        "Cooperative governance",
+        "Running production services sustainably",
+        "Member-driven product development"
+      ],
+      "intellectualProperty": [
+        "Platform-cooperative governance models",
+        "Federated co-op protocols"
+      ],
+      "rivalrousResources": [
+        "A working co-op others want to integrate with",
+        "Member labor and attention"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Low to Moderate",
+        "institutionalTrust&Power": "Moderate",
+        "politicalRisk": "Low",
+        "financialAccess": "Moderate (revenue-generating)",
+        "businessOrientation": "Cooperative, member-owned"
+      },
+      "sortOrder": 16
+    },
+    {
+      "slug": "local-node-host-steward",
+      "name": "Local Node Host / Steward",
+      "subtitle": "Ground Infrastructure Keeper",
+      "entityType": "Community Hub Operator",
+      "archetype": "organizer",
+      "isDisruptive": false,
+      "backstory": "Runs community-facing dweb infrastructure in a physical place — a local node, hub, or hackerspace — bridging the digital network and the people who live around it.",
+      "expandedBackstory": "They host the box in the back room: the local relay, the community server, the mesh node on the roof. They're the human face of the dweb in one specific place, the person neighbors actually ask when something breaks. They translate global infrastructure into local reality and back again, carrying both the technical duty of keeping a node up and the social duty of keeping a community included. Their leverage is locality — they hold a real foothold in physical territory that purely digital actors can't reach.",
+      "values": [
+        "Place",
+        "Stewardship",
+        "Local resilience",
+        "Inclusion"
+      ],
+      "goals": [
+        "Keep local infrastructure running and accessible",
+        "Bridge digital network and physical community",
+        "Federate with other local nodes"
+      ],
+      "obligations": [
+        "Accountable to local users",
+        "Must maintain physical and digital uptime",
+        "Bound by local context and constraints"
+      ],
+      "capabilities": [
+        "Local node operation",
+        "Community tech support",
+        "Physical-space hosting"
+      ],
+      "intellectualProperty": [
+        "Local-node setup guides",
+        "Community-hub operating models"
+      ],
+      "rivalrousResources": [
+        "Physical space and local presence",
+        "Steward time"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Low to Moderate",
+        "institutionalTrust&Power": "Low (high locally)",
+        "politicalRisk": "Low to Moderate",
+        "financialAccess": "Low",
+        "businessOrientation": "Place-based, community-first"
+      },
+      "sortOrder": 17
+    },
+    {
+      "slug": "platform-refugee-influencer",
+      "name": "Platform-Refugee Influencer",
+      "subtitle": "Migrated-Audience Magnet",
+      "entityType": "Independent Creator",
+      "archetype": "organizer",
+      "isDisruptive": true,
+      "backstory": "Fled a collapsing platform and brought a huge audience to the dweb. Delivers users at a scale organizers can only dream of — along with platform-era expectations and drama.",
+      "expandedBackstory": "When their old platform turned hostile, they left and a large slice of their audience followed, making them one of the fastest on-ramps to dweb adoption in the room. But the audience came shaped by platform logic: they expect frictionless feeds, constant novelty, monetization, and the parasocial intensity that platforms engineered. The influencer can flood a project with users overnight — and just as easily import the engagement-maximizing, drama-driven dynamics that the dweb is supposed to be an escape from.",
+      "values": [
+        "Reach",
+        "Authenticity (as brand)",
+        "Audience loyalty",
+        "Momentum"
+      ],
+      "goals": [
+        "Establish a durable home for the audience on the dweb",
+        "Convert reach into real adoption",
+        "Maintain relevance through the migration"
+      ],
+      "obligations": [
+        "Beholden to audience expectations",
+        "Must keep producing to retain reach",
+        "Reputation tied to the migration succeeding"
+      ],
+      "capabilities": [
+        "Mass audience mobilization",
+        "Content production at volume",
+        "Trend-setting"
+      ],
+      "intellectualProperty": [
+        "Audience relationship and brand",
+        "Content formats and back-catalog"
+      ],
+      "rivalrousResources": [
+        "A large migratable audience (rare, coveted)",
+        "Their own attention and posting cadence"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate to High",
+        "institutionalTrust&Power": "Moderate (audience-derived)",
+        "politicalRisk": "Moderate (deplatforming-prone)",
+        "financialAccess": "Moderate (monetization-dependent)",
+        "businessOrientation": "Reach-driven, creator-economy"
+      },
+      "sortOrder": 18
+    },
+    {
+      "slug": "indigenous-data-sovereignty-practitioner",
+      "name": "Indigenous Data-Sovereignty Practitioner",
+      "subtitle": "Collective-Rights Guardian",
+      "entityType": "Indigenous Data Governance Body",
+      "archetype": "organizer",
+      "isDisruptive": false,
+      "backstory": "Stewards community data under collective, rather than individual, rights frameworks. Brings non-negotiable boundaries rooted in sovereignty that long predates the internet.",
+      "expandedBackstory": "They operate from a tradition in which data about a people belongs to that people collectively, governed by their own law and protocols — a framework like the CARE principles that the dominant individual-consent model simply cannot express. They've seen \"open\" and \"decentralized\" projects extract and expose community knowledge under the banner of freedom. They will collaborate, but only on terms that honor collective authority and the right to say no, and that boundary is not a bargaining position — it's the precondition for any agreement at all.",
+      "values": [
+        "Collective sovereignty",
+        "Self-determination",
+        "Reciprocity",
+        "Stewardship"
+      ],
+      "goals": [
+        "Ensure community data is governed by the community",
+        "Embed collective-rights frameworks into the dweb",
+        "Protect knowledge from extraction"
+      ],
+      "obligations": [
+        "Bound by community law and protocol",
+        "Cannot share governed knowledge without collective consent",
+        "Accountable to the community's authority"
+      ],
+      "capabilities": [
+        "Collective data governance",
+        "Indigenous protocol expertise",
+        "Trust-based partnership building"
+      ],
+      "intellectualProperty": [
+        "Collective-rights data frameworks (e.g. CARE-aligned)",
+        "Community governance protocols"
+      ],
+      "rivalrousResources": [
+        "Stewarded knowledge and access to it",
+        "Practitioner time and trust"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Low",
+        "institutionalTrust&Power": "Moderate",
+        "politicalRisk": "Moderate",
+        "financialAccess": "Low to Moderate",
+        "businessOrientation": "Sovereignty-first, reciprocal"
+      },
+      "sortOrder": 19
+    },
+    {
+      "slug": "documentarian-filmmaker",
+      "name": "Documentarian / Filmmaker",
+      "subtitle": "Movement Chronicler",
+      "entityType": "Independent Documentary Maker",
+      "archetype": "storyteller",
+      "isDisruptive": false,
+      "backstory": "Captures and legitimizes the dweb movement on film. Controls how the story reaches the wider world — and needs access and authentic material to do it.",
+      "expandedBackstory": "They believe a movement that isn't documented effectively didn't happen as far as the wider world is concerned, and they've trained their lens on the dweb because they think it's the most important infrastructure story of the era. Their film can grant legitimacy, attract funders, and move public opinion. But they need genuine access to make something true rather than promotional, which means earning the trust of organizers and builders who are wary of being flattened into a narrative or exposed before they're ready.",
+      "values": [
+        "Truth",
+        "Legitimacy through story",
+        "Access",
+        "Craft"
+      ],
+      "goals": [
+        "Document the movement credibly and at reach",
+        "Bring outside attention and legitimacy",
+        "Preserve a truthful record of how it happened"
+      ],
+      "obligations": [
+        "Bound by documentary ethics",
+        "Must protect vulnerable subjects",
+        "Accountable to distributors/funders of the film"
+      ],
+      "capabilities": [
+        "Filmmaking and storytelling",
+        "Access to distribution and audiences",
+        "Legitimacy-conferring narrative"
+      ],
+      "intellectualProperty": [
+        "Footage and the film itself",
+        "Narrative and access relationships"
+      ],
+      "rivalrousResources": [
+        "Production capacity and timeline",
+        "Distribution and attention"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Moderate",
+        "politicalRisk": "Moderate (subjects may be exposed)",
+        "financialAccess": "Low to Moderate",
+        "businessOrientation": "Narrative-driven, mission-aligned"
+      },
+      "sortOrder": 20
+    },
+    {
+      "slug": "visual-artist-world-builder",
+      "name": "Visual Artist / World-Builder",
+      "subtitle": "Aesthetic Infrastructure Designer",
+      "entityType": "Independent Artist / Studio",
+      "archetype": "storyteller",
+      "isDisruptive": false,
+      "backstory": "Gives the movement a visual language and identity — the symbols, worlds, and aesthetics that make an abstract idea feel real and worth belonging to.",
+      "expandedBackstory": "They argue that aesthetics are infrastructure: people don't join protocols, they join worlds they can see and feel themselves inside. Their illustrations, type, motifs, and imagined futures do the work of making \"decentralized web\" into something with a face, a vibe, a flag people will rally to. This makes them quietly powerful — the dominant visual language shapes which projects feel legitimate and alive — and it puts them in tension with anyone who thinks the \"real\" work is purely technical.",
+      "values": [
+        "Beauty",
+        "Meaning",
+        "Belonging",
+        "Imagination"
+      ],
+      "goals": [
+        "Build a coherent visual identity for the movement",
+        "Make the dweb feel like a world people want to inhabit",
+        "Translate abstract values into images"
+      ],
+      "obligations": [
+        "Must stay true to the movement's values",
+        "Bound by commissions and collaborations",
+        "Accountable to communities whose identity they shape"
+      ],
+      "capabilities": [
+        "Visual design and illustration",
+        "World-building and identity systems",
+        "Aesthetic direction"
+      ],
+      "intellectualProperty": [
+        "Visual language, motifs, and assets",
+        "World-building canon"
+      ],
+      "rivalrousResources": [
+        "Artist time and creative output",
+        "Aesthetic legitimacy (whose look wins)"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Low to Moderate",
+        "politicalRisk": "Low",
+        "financialAccess": "Low to Moderate",
+        "businessOrientation": "Identity-driven, mission-aligned"
+      },
+      "sortOrder": 21
+    },
+    {
+      "slug": "independent-journalist-investigator",
+      "name": "Independent Journalist / Investigator",
+      "subtitle": "Accountability Press",
+      "entityType": "Independent Reporter",
+      "archetype": "storyteller",
+      "isDisruptive": false,
+      "backstory": "Covers the dweb with a critical eye, holding even the movement's heroes accountable. Trusted precisely because they'll report inconvenient truths.",
+      "expandedBackstory": "They came to the beat believing decentralization is worth defending — and that the surest way to discredit it is to let its failures and hypocrisies go unexamined until an enemy finds them first. They scrutinize the funders' strings, the \"decentralized\" systems quietly running on three cloud providers, the governance that concentrates power while claiming not to. Their reporting builds credibility for the whole movement, but their willingness to expose problems makes them an uneasy partner for anyone with something to hide.",
+      "values": [
+        "Truth",
+        "Accountability",
+        "Independence",
+        "Public interest"
+      ],
+      "goals": [
+        "Hold the movement to its own stated values",
+        "Expose recentralization and extraction early",
+        "Build public credibility through honest coverage"
+      ],
+      "obligations": [
+        "Bound by journalistic ethics",
+        "Must verify before publishing",
+        "Must protect sources"
+      ],
+      "capabilities": [
+        "Investigation and verification",
+        "Reaching public audiences",
+        "Source networks"
+      ],
+      "intellectualProperty": [
+        "Reporting and investigative findings",
+        "Source relationships"
+      ],
+      "rivalrousResources": [
+        "Reporting time and editorial space",
+        "Credibility (spent if misused)"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Moderate",
+        "politicalRisk": "Moderate to High",
+        "financialAccess": "Low",
+        "businessOrientation": "Public-interest, independent"
+      },
+      "sortOrder": 22
+    },
+    {
+      "slug": "archivist-memory-keeper",
+      "name": "Archivist / Memory-Keeper",
+      "subtitle": "Anti-Erasure Custodian",
+      "entityType": "Distributed Archive Project",
+      "archetype": "storyteller",
+      "isDisruptive": false,
+      "backstory": "Preserves the movement's record — its decisions, culture, and history — against erasure. Lives in the tension between permanence and the right to disappear.",
+      "expandedBackstory": "They know the platform-State's quietest weapon is the memory hole: things vanish, history is rewritten, and no one can prove what was promised. They build durable, distributed archives so the dweb's commitments, debates, and culture survive. But permanence cuts both ways — the same durability that defends against erasure collides directly with the privacy cryptographer's right-to-disappear and with communities that don't want their knowledge fixed forever. They hold the past, and holding it is itself contested.",
+      "values": [
+        "Permanence",
+        "Memory",
+        "Truth over time",
+        "Resilience"
+      ],
+      "goals": [
+        "Preserve the movement's record durably",
+        "Prevent silent erasure and revision",
+        "Make history verifiable and accessible"
+      ],
+      "obligations": [
+        "Must preserve faithfully and neutrally",
+        "Bound to honor consent and removal where promised",
+        "Accountable to future users, not just present ones"
+      ],
+      "capabilities": [
+        "Distributed archiving",
+        "Provenance and integrity verification",
+        "Long-term preservation"
+      ],
+      "intellectualProperty": [
+        "The archive itself",
+        "Preservation and provenance methods"
+      ],
+      "rivalrousResources": [
+        "Storage and curation capacity",
+        "Archivist attention"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Low to Moderate",
+        "institutionalTrust&Power": "Moderate",
+        "politicalRisk": "Moderate (preservation vs. privacy conflict)",
+        "financialAccess": "Low",
+        "businessOrientation": "Preservation-first, public-interest"
+      },
+      "sortOrder": 23
+    },
+    {
+      "slug": "attention-broker",
+      "name": "Attention Broker",
+      "subtitle": "Growth-Hacking Marketer",
+      "entityType": "Growth Marketing Operator",
+      "archetype": "storyteller",
+      "isDisruptive": true,
+      "backstory": "Can 10x a project's adoption through tactics honed inside the platform-State — virality engines, referral loops, engagement hooks — the very mechanics the dweb is trying to escape.",
+      "expandedBackstory": "They are genuinely on the dweb's side and genuinely effective, which is exactly what makes them dangerous. They know how to make anything spread because they spent years building the growth machines of the platforms. Offered a dweb project, they can deliver users at a rate no organic organizer can match. The cost is in the methods: the dark patterns, the manufactured urgency, the optimization for engagement over wellbeing — importing the platform-State's logic into the thing meant to replace it.",
+      "values": [
+        "Growth",
+        "Reach",
+        "Conversion",
+        "Momentum"
+      ],
+      "goals": [
+        "Drive rapid, measurable adoption",
+        "Make dweb projects spread virally",
+        "Prove the dweb can win on growth, not just principle"
+      ],
+      "obligations": [
+        "Accountable to growth targets",
+        "Bound by client/project mandates",
+        "Reputation tied to numbers going up"
+      ],
+      "capabilities": [
+        "Viral and growth-loop design",
+        "Conversion optimization",
+        "Channel and campaign execution"
+      ],
+      "intellectualProperty": [
+        "Growth playbooks and funnels",
+        "Engagement-mechanic designs"
+      ],
+      "rivalrousResources": [
+        "Marketing budget and channels",
+        "Their own execution capacity"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "High",
+        "institutionalTrust&Power": "Low to Moderate",
+        "politicalRisk": "Low",
+        "financialAccess": "Moderate",
+        "businessOrientation": "Growth-driven, results-first"
+      },
+      "sortOrder": 24
+    },
+    {
+      "slug": "sound-music-performance-artist",
+      "name": "Sound / Music & Performance Artist",
+      "subtitle": "Movement's Affective Glue",
+      "entityType": "Musician / Performance Collective",
+      "archetype": "storyteller",
+      "isDisruptive": false,
+      "backstory": "Creates the music, sound, and live performance that turn a network into a culture and a gathering into a movement. The affective glue that makes people feel they belong.",
+      "expandedBackstory": "They understand that movements are held together less by arguments than by shared feeling — the song everyone knows, the set that turns a roomful of strangers into a we. Their work at gatherings like DWeb Camp is what converts abstract alignment into embodied solidarity. It's hard to value in a spreadsheet and easy to overlook, but without it the dweb is a set of protocols no one feels anything about. They trade in belonging, which is both real and notoriously hard to put terms on.",
+      "values": [
+        "Belonging",
+        "Feeling",
+        "Collective joy",
+        "Presence"
+      ],
+      "goals": [
+        "Turn the network into a felt culture",
+        "Energize gatherings and sustain morale",
+        "Make solidarity something people experience, not just agree to"
+      ],
+      "obligations": [
+        "Must show up and perform live",
+        "Bound by collaborations and venues",
+        "Accountable to the communities they move"
+      ],
+      "capabilities": [
+        "Music and sound creation",
+        "Live performance",
+        "Atmosphere and ritual design"
+      ],
+      "intellectualProperty": [
+        "Original music and performances",
+        "Ritual and gathering formats"
+      ],
+      "rivalrousResources": [
+        "Performance time and energy",
+        "Presence at gatherings (can't be everywhere)"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Low",
+        "politicalRisk": "Low",
+        "financialAccess": "Low",
+        "businessOrientation": "Culture-first, presence-driven"
+      },
+      "sortOrder": 25
+    },
+    {
+      "slug": "nomad-theory-philosopher",
+      "name": "Nomad-Theory Philosopher",
+      "subtitle": "Frame-Giver",
+      "entityType": "Independent Theorist",
+      "archetype": "strategist",
+      "isDisruptive": false,
+      "backstory": "Supplies the conceptual frame for the whole endeavor — smooth versus striated space, movement as territory, the platform-State as enclosure. Generative, and capable of stalling action.",
+      "expandedBackstory": "They are the one who can name what's actually happening: that the platform-State is a _mode_ that restricts other modes, that nomads hold territory through trajectory rather than settlement. Their concepts give the movement its self-understanding and its language for refusing false solutions. But the gift has a shadow — a perfectly framed problem can become a reason never to ship, and their pursuit of conceptual rigor sometimes pulls a room away from the imperfect agreement that would actually build something.",
+      "values": [
+        "Conceptual clarity",
+        "Refusal of enclosure",
+        "Critique",
+        "Imagination"
+      ],
+      "goals": [
+        "Give the movement a coherent frame to act from",
+        "Guard against solutions that recreate the platform-State",
+        "Open new directions others can't yet see"
+      ],
+      "obligations": [
+        "Must remain intellectually honest",
+        "Accountable to the coherence of the frame",
+        "Bound by their own critique of power"
+      ],
+      "capabilities": [
+        "Conceptual framing",
+        "Critique and diagnosis",
+        "Generating new directions"
+      ],
+      "intellectualProperty": [
+        "Theoretical frameworks and vocabulary",
+        "Critical analyses"
+      ],
+      "rivalrousResources": [
+        "Attention and airtime in deliberation",
+        "Their own thinking time"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Low to Moderate",
+        "politicalRisk": "Low",
+        "financialAccess": "Low",
+        "businessOrientation": "Idea-driven, non-commercial"
+      },
+      "sortOrder": 26
+    },
+    {
+      "slug": "public-interest-policy-strategist",
+      "name": "Public-Interest Policy Strategist",
+      "subtitle": "Regulatory Edge-Worker",
+      "entityType": "Policy Advocacy Organization",
+      "archetype": "strategist",
+      "isDisruptive": false,
+      "backstory": "Works the regulatory edges to protect the dweb legally and win it room to grow — which means demanding legibility the autonomy and privacy camps resist.",
+      "expandedBackstory": "They operate where the movement meets the law, translating between worlds that barely trust each other. They know the dweb needs legal cover to survive the platform-State's regulatory capture, and they can win exemptions, safe harbors, and standing. But the price of legal protection is almost always legibility — disclosure, accountability, identifiable parties — which runs straight into the cryptographers' privacy guarantees and the philosophers' refusal of enclosure. They're indispensable and perpetually accused of inviting the State back in through the side door.",
+      "values": [
+        "Legal durability",
+        "Pragmatism",
+        "Public interest",
+        "Strategic protection"
+      ],
+      "goals": [
+        "Win legal room for the dweb to operate",
+        "Pre-empt hostile regulation",
+        "Translate movement needs into policy wins"
+      ],
+      "obligations": [
+        "Bound by what's legally achievable",
+        "Accountable to coalition partners",
+        "Must operate within the law to change it"
+      ],
+      "capabilities": [
+        "Policy analysis and drafting",
+        "Regulatory relationships",
+        "Coalition building"
+      ],
+      "intellectualProperty": [
+        "Policy frameworks and model legislation",
+        "Regulatory strategy"
+      ],
+      "rivalrousResources": [
+        "Policy-staff time",
+        "Access to regulators and lawmakers"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Low to Moderate",
+        "institutionalTrust&Power": "Moderate to High",
+        "politicalRisk": "Moderate",
+        "financialAccess": "Moderate",
+        "businessOrientation": "Public-interest, pragmatic"
+      },
+      "sortOrder": 27
+    },
+    {
+      "slug": "standards-governance-diplomat",
+      "name": "Standards & Governance Diplomat",
+      "subtitle": "Faction Mediator",
+      "entityType": "Neutral Coordination Body",
+      "archetype": "strategist",
+      "isDisruptive": false,
+      "backstory": "Mediates between protocols, projects, and factions toward shared governance. A trusted broker — with influence but little hard enforcement power.",
+      "expandedBackstory": "They've made a vocation of the space between camps, brokering the agreements that let rival implementations interoperate and feuding communities share standards. Their power is entirely soft: trust, neutrality, and the ability to get adversaries in a room and keep them there. They can author a governance process everyone signs, but they can't make anyone obey it, which means their every success depends on the continued goodwill of parties who could walk at any time. They hold the ecosystem's coordination together by reputation alone.",
+      "values": [
+        "Coordination",
+        "Neutrality",
+        "Polycentric governance",
+        "Interdependence"
+      ],
+      "goals": [
+        "Get rival factions to shared governance",
+        "Keep protocols interoperable",
+        "Build durable, legitimate coordination processes"
+      ],
+      "obligations": [
+        "Must remain credibly neutral",
+        "Cannot favor any faction",
+        "Bound by the agreements they broker"
+      ],
+      "capabilities": [
+        "Multi-party mediation",
+        "Governance process design",
+        "Trust-brokering"
+      ],
+      "intellectualProperty": [
+        "Governance process templates",
+        "Mediation frameworks"
+      ],
+      "rivalrousResources": [
+        "Neutral credibility (fragile)",
+        "Mediation bandwidth"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Moderate to High",
+        "politicalRisk": "Moderate",
+        "financialAccess": "Moderate",
+        "businessOrientation": "Coordination-first, neutral"
+      },
+      "sortOrder": 28
+    },
+    {
+      "slug": "memetic-strategist",
+      "name": "Memetic Strategist",
+      "subtitle": "Perception Engineer",
+      "entityType": "Narrative Strategy Operator",
+      "archetype": "strategist",
+      "isDisruptive": false,
+      "backstory": "Shapes how the movement is perceived at the meta-level — the framings, slogans, and memes that decide which ideas spread and which die. Story as strategy, not decoration.",
+      "expandedBackstory": "Where the visual artist builds a world to inhabit and the marketer drives a funnel, this strategist works one level up: on the contest of meaning itself. They decide whether the dweb is framed as \"freedom\" or \"chaos,\" whether enclosure is named and felt, whether a rival's narrative is neutralized before it lands. They wield real power over the discourse and operate close to the line where persuasion becomes manipulation — a line the journalist and philosopher will hold them to.",
+      "values": [
+        "Narrative power",
+        "Framing",
+        "Resonance",
+        "Strategic clarity"
+      ],
+      "goals": [
+        "Win the contest of meaning around the dweb",
+        "Make the movement's framing spread and stick",
+        "Neutralize hostile narratives"
+      ],
+      "obligations": [
+        "Accountable to the movement's actual values",
+        "Must not cross into disinformation",
+        "Bound by reputational risk if exposed as manipulation"
+      ],
+      "capabilities": [
+        "Narrative and framing strategy",
+        "Meme and message design",
+        "Discourse analysis"
+      ],
+      "intellectualProperty": [
+        "Framing and narrative playbooks",
+        "Memetic strategy"
+      ],
+      "rivalrousResources": [
+        "Strategist attention",
+        "Narrative airtime and channels"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate to High",
+        "institutionalTrust&Power": "Low to Moderate",
+        "politicalRisk": "Moderate",
+        "financialAccess": "Low to Moderate",
+        "businessOrientation": "Narrative-driven, strategic"
+      },
+      "sortOrder": 29
+    },
+    {
+      "slug": "economic-tokenomics-designer",
+      "name": "Economic / Tokenomics Designer",
+      "subtitle": "Incentive Architect",
+      "entityType": "Mechanism Design Practitioner",
+      "archetype": "strategist",
+      "isDisruptive": false,
+      "backstory": "Designs the incentive structures and value flows that make a dweb economy sustainable — mathematically elegant systems that are sometimes socially blunt.",
+      "expandedBackstory": "They believe most decentralized projects don't fail technically, they fail economically: the incentives quietly reward the wrong behavior until the whole thing hollows out. Their mechanisms — bonding curves, staking, fee flows, retroactive rewards — can make cooperation rational and sustainability automatic. The risk is in mistaking the model for the people: a beautifully balanced incentive system can still grind against the lived values of an organizer's community or a co-op's bylaws, optimizing a number while corroding the thing it was meant to serve.",
+      "values": [
+        "Sustainability",
+        "Aligned incentives",
+        "Rigor",
+        "Mechanism integrity"
+      ],
+      "goals": [
+        "Design economies that sustain dweb infrastructure",
+        "Make cooperation the rational default",
+        "Avoid extractive or degenerate incentive loops"
+      ],
+      "obligations": [
+        "Must model honestly, including failure modes",
+        "Accountable to communities adopting the design",
+        "Bound by the math holding up under stress"
+      ],
+      "capabilities": [
+        "Mechanism and incentive design",
+        "Economic modeling and simulation",
+        "Token and fee architecture"
+      ],
+      "intellectualProperty": [
+        "Incentive-mechanism designs",
+        "Economic models and simulations"
+      ],
+      "rivalrousResources": [
+        "Design and modeling time",
+        "Adoption of their mechanism (only so many can dominate)"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Moderate",
+        "institutionalTrust&Power": "Moderate",
+        "politicalRisk": "Moderate (regulatory exposure of token models)",
+        "financialAccess": "Moderate",
+        "businessOrientation": "Mechanism-first, sustainability-driven"
+      },
+      "sortOrder": 30
+    },
+    {
+      "slug": "futures-forecaster-think-tank-fellow",
+      "name": "Futures Forecaster / Think-Tank Fellow",
+      "subtitle": "Agenda-Setter",
+      "entityType": "Influential Research Institute",
+      "archetype": "strategist",
+      "isDisruptive": true,
+      "backstory": "Shapes which futures the movement and its funders take seriously through influential foresight work. Whoever frames the future quietly steers the funding.",
+      "expandedBackstory": "They publish the scenarios, roadmaps, and \"state of the dweb\" reports that funders, policymakers, and press treat as the map of where things are going. That map is never neutral — every forecast elevates some priorities and buries others, and their institute has its own backers whose interests tint the lens. They sincerely want the dweb to flourish, but their power to set the agenda means a single influential report can redirect capital and attention toward their preferred future and away from paths that might have served the commons better.",
+      "values": [
+        "Foresight",
+        "Influence",
+        "Strategic positioning",
+        "Credibility"
+      ],
+      "goals": [
+        "Shape the movement's sense of where it's going",
+        "Direct attention and capital toward favored futures",
+        "Cement the institute as the authoritative voice"
+      ],
+      "obligations": [
+        "Bound by the institute's funders and mandate",
+        "Must maintain a credible appearance of rigor",
+        "Reputation tied to forecasts not aging badly"
+      ],
+      "capabilities": [
+        "Foresight and scenario research",
+        "Convening funders and policymakers",
+        "Agenda-setting publication"
+      ],
+      "intellectualProperty": [
+        "Forecasts, scenarios, and reports",
+        "Institutional credibility and platform"
+      ],
+      "rivalrousResources": [
+        "Authoritative airtime (whose forecast leads)",
+        "Researcher and convening capacity"
+      ],
+      "systemicConstraints": {
+        "riskTolerance": "Low to Moderate",
+        "institutionalTrust&Power": "High",
+        "politicalRisk": "Low to Moderate",
+        "financialAccess": "Moderate to High (funder-dependent)",
+        "businessOrientation": "Influence-driven, institutional"
+      },
+      "sortOrder": 31
+    }
+  ]
+}

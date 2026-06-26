@@ -1,54 +1,55 @@
-import { Agreement, AgreementVersion, AgreementStatus, Founder } from './types';
-import { agreementStorage, founderStorage, generateAgreementId } from './storage';
-import { validateAgreementEquity } from './validation';
+import { Agreement, AgreementVersion, AgreementStatus, Role } from './types';
+import { agreementStorage, roleStorage, generateAgreementId } from './storage';
+import { validateAgreementTerms } from './validation';
+import {
+  allPartiesApproved,
+  getPartyRoleIds,
+  isRoleInAgreement,
+  normalizeAgreement,
+} from './agreementHelpers';
 
-// Create new agreement (requires signature)
 export async function createAgreement(
-  founderAId: string,
-  founderBId: string,
-  equityFromA: number,
-  equityFromB: number,
+  partyRoleIds: string[],
+  commitments: Record<string, string>,
   notes: string,
   initiatedBy: string,
   signature: string
 ): Promise<{ success: boolean; agreement?: Agreement; error?: string }> {
-  // Validate notes are provided
-  if (!notes || !notes.trim()) {
-    return { success: false, error: 'Agreement notes are required. Please explain the strategic rationale, key terms, risks, and benefits.' };
+  const uniqueParties = Array.from(new Set(partyRoleIds));
+
+  if (uniqueParties.length < 2) {
+    return { success: false, error: 'An agreement requires at least two parties' };
   }
-  
-  // Validate equity amounts
-  const validationErrors = await validateAgreementEquity(founderAId, founderBId, equityFromA, equityFromB);
+
+  if (!uniqueParties.includes(initiatedBy)) {
+    return { success: false, error: 'Proposer must be a party to the agreement' };
+  }
+
+  const validationErrors = validateAgreementTerms(uniqueParties, commitments, notes);
   if (validationErrors.length > 0) {
     return { success: false, error: validationErrors[0].message };
   }
-  
-  // Verify signature is provided
+
   if (!signature) {
     return { success: false, error: 'Signature is required to create agreement' };
   }
-  
-  // Create initial version with signature
-  const signatures: { [founderId: string]: string } = {};
-  signatures[initiatedBy] = signature;
-  
+
+  const signatures: { [roleId: string]: string } = { [initiatedBy]: signature };
+
   const initialVersion: AgreementVersion = {
     versionNumber: 0,
-    equityFromCompanyA: equityFromA,
-    equityFromCompanyB: equityFromB,
+    commitments,
     notes,
     proposedBy: initiatedBy,
     proposedAt: new Date().toISOString(),
-    approvedBy: [initiatedBy], // Proposer signs and approves by signing
-    signatures, // Store proposer's signature
+    approvedBy: [initiatedBy],
+    signatures,
   };
-  
-  // Create agreement
+
   const agreementId = await generateAgreementId();
   const agreement: Agreement = {
     id: agreementId,
-    founderAId,
-    founderBId,
+    partyRoleIds: uniqueParties,
     status: 'proposed',
     initiatedBy,
     lastRevisedBy: initiatedBy,
@@ -57,257 +58,165 @@ export async function createAgreement(
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-  
-  await agreementStorage.save(agreement);
-  return { success: true, agreement };
+
+  const saved = await agreementStorage.save(agreement);
+  return { success: true, agreement: normalizeAgreement(saved) };
 }
 
-// Propose revision to existing agreement (requires signature)
 export async function proposeRevision(
   agreementId: string,
-  equityFromA: number,
-  equityFromB: number,
+  commitments: Record<string, string>,
   notes: string,
   proposedBy: string,
   signature: string
 ): Promise<{ success: boolean; agreement?: Agreement; error?: string }> {
-  // Validate notes are provided
-  if (!notes || !notes.trim()) {
-    return { success: false, error: 'Agreement notes are required for revisions. Please explain the strategic rationale, key terms, risks, and benefits.' };
-  }
-  
   const agreement = await agreementStorage.findById(agreementId);
   if (!agreement) {
     return { success: false, error: 'Agreement not found' };
   }
-  
-  // Check if user is involved in agreement
-  if (agreement.founderAId !== proposedBy && agreement.founderBId !== proposedBy) {
-    return { success: false, error: 'You are not authorized to revise this agreement' };
-  }
-  
-  // Cannot revise completed agreements
-  if (agreement.status === 'completed') {
-    return { success: false, error: 'Cannot revise completed agreements' };
-  }
-  
-  // Validate equity amounts
-  const validationErrors = await validateAgreementEquity(
-    agreement.founderAId, 
-    agreement.founderBId, 
-    equityFromA, 
-    equityFromB,
-    agreementId
-  );
+  const normalized = normalizeAgreement(agreement);
+
+  const partyRoleIds = getPartyRoleIds(normalized);
+
+  const validationErrors = validateAgreementTerms(partyRoleIds, commitments, notes);
   if (validationErrors.length > 0) {
     return { success: false, error: validationErrors[0].message };
   }
-  
-  // Verify signature is provided
+
+  if (!isRoleInAgreement(normalized, proposedBy)) {
+    return { success: false, error: 'You are not authorized to revise this agreement' };
+  }
+
+  if (normalized.status === 'completed') {
+    return { success: false, error: 'Cannot revise completed agreements' };
+  }
+
   if (!signature) {
     return { success: false, error: 'Signature is required to propose revision' };
   }
-  
-  // Create new version with signature
-  const signatures: { [founderId: string]: string } = {};
-  signatures[proposedBy] = signature;
-  
+
+  const signatures: { [roleId: string]: string } = { [proposedBy]: signature };
+
   const newVersion: AgreementVersion = {
-    versionNumber: agreement.versions.length,
-    equityFromCompanyA: equityFromA,
-    equityFromCompanyB: equityFromB,
+    versionNumber: normalized.versions.length,
+    commitments,
     notes,
     proposedBy,
     proposedAt: new Date().toISOString(),
-    approvedBy: [proposedBy], // Proposer signs and approves by signing
-    signatures, // Store proposer's signature
+    approvedBy: [proposedBy],
+    signatures,
   };
-  
-  // Update agreement
+
   const updatedAgreement: Agreement = {
-    ...agreement,
+    ...normalized,
     status: 'revised',
     lastRevisedBy: proposedBy,
-    currentVersion: agreement.versions.length,
-    versions: [...agreement.versions, newVersion],
+    currentVersion: normalized.versions.length,
+    versions: [...normalized.versions, newVersion],
     updatedAt: new Date().toISOString(),
   };
-  
-  await agreementStorage.save(updatedAgreement);
-  return { success: true, agreement: updatedAgreement };
+
+  const saved = await agreementStorage.save(updatedAgreement);
+  return { success: true, agreement: normalizeAgreement(saved) };
 }
 
-// Generate message to sign for creating a new agreement
-export function generateCreateAgreementMessage(
-  equityFromA: number,
-  equityFromB: number,
-  founderName: string,
-  otherFounderName: string
-): string {
-  return `I, ${founderName}, propose a new equity swap agreement:\n\n` +
-         `I will exchange ${equityFromA}% of my company's equity for ${equityFromB}% of ${otherFounderName}'s company equity.\n\n` +
-         `This signature confirms my proposal of these terms.\n\n` +
-         `Timestamp: ${new Date().toISOString()}`;
-}
-
-// Generate message to sign for proposing a revision
-export function generateRevisionMessage(
-  agreementDisplayNumber: number,
-  versionNumber: number,
-  equityFromA: number,
-  equityFromB: number,
-  founderName: string
-): string {
-  return `I, ${founderName}, propose Revision ${versionNumber + 1} to Agreement ${agreementDisplayNumber}:\n\n` +
-         `I propose to exchange ${equityFromA}% of my company's equity for ${equityFromB}% of the other company's equity.\n\n` +
-         `This signature confirms my proposal of these revised terms.\n\n` +
-         `Timestamp: ${new Date().toISOString()}`;
-}
-
-// Generate message to sign for agreement approval
-export function generateApprovalMessage(
-  agreementDisplayNumber: number,
-  versionNumber: number,
-  equityFromA: number,
-  equityFromB: number,
-  founderName: string
-): string {
-  return `I, ${founderName}, approve Agreement ${agreementDisplayNumber}, Version ${versionNumber + 1}:\n\n` +
-         `I will exchange ${equityFromA}% of my company's equity for ${equityFromB}% of the other company's equity.\n\n` +
-         `This signature confirms my agreement to these terms.\n\n` +
-         `Timestamp: ${new Date().toISOString()}`;
-}
-
-// Approve current version of agreement (requires signature)
 export async function approveAgreement(
   agreementId: string,
-  founderId: string,
+  roleId: string,
   signature: string
 ): Promise<{ success: boolean; agreement?: Agreement; error?: string }> {
   const agreement = await agreementStorage.findById(agreementId);
   if (!agreement) {
     return { success: false, error: 'Agreement not found' };
   }
-  
-  // Check if user is involved in agreement
-  if (agreement.founderAId !== founderId && agreement.founderBId !== founderId) {
+  const normalized = normalizeAgreement(agreement);
+
+  if (!isRoleInAgreement(normalized, roleId)) {
     return { success: false, error: 'You are not authorized to approve this agreement' };
   }
-  
-  // Cannot approve completed agreements
-  if (agreement.status === 'completed') {
+
+  if (normalized.status === 'completed') {
     return { success: false, error: 'Agreement is already completed' };
   }
-  
-  const currentVersion = agreement.versions[agreement.currentVersion];
+
+  const currentVersion = normalized.versions[normalized.currentVersion];
   if (!currentVersion) {
     return { success: false, error: 'Invalid agreement version' };
   }
-  
-  // Check if already approved by this founder
-  if (currentVersion.approvedBy.includes(founderId)) {
+
+  if (currentVersion.approvedBy.includes(roleId)) {
     return { success: false, error: 'You have already approved this version' };
   }
-  
-  // Verify signature is provided
+
   if (!signature) {
     return { success: false, error: 'Signature is required to approve agreement' };
   }
-  
-  // Add approval and signature
-  const signatures = currentVersion.signatures || {};
-  signatures[founderId] = signature;
-  
-  // Only add to approvedBy if not already there (shouldn't happen, but safety check)
-  const updatedApprovedBy = currentVersion.approvedBy.includes(founderId)
-    ? currentVersion.approvedBy
-    : [...currentVersion.approvedBy, founderId];
-  
+
+  const signatures = { ...(currentVersion.signatures || {}), [roleId]: signature };
+  const updatedApprovedBy = [...currentVersion.approvedBy, roleId];
+
   const updatedVersion: AgreementVersion = {
     ...currentVersion,
     approvedBy: updatedApprovedBy,
     signatures,
   };
-  
-  const updatedVersions = [...agreement.versions];
-  updatedVersions[agreement.currentVersion] = updatedVersion;
-  
-  // Check if both founders have approved (and signed)
-  const bothApproved = updatedVersion.approvedBy.includes(agreement.founderAId) && 
-                      updatedVersion.approvedBy.includes(agreement.founderBId) &&
-                      signatures[agreement.founderAId] && 
-                      signatures[agreement.founderBId];
-  
-  let newStatus: AgreementStatus = agreement.status;
-  if (bothApproved) {
-    newStatus = 'approved';
-    
-    // Update equity swapped for both founders
-    const founderA = await founderStorage.findById(agreement.founderAId);
-    const founderB = await founderStorage.findById(agreement.founderBId);
-    
-    if (founderA && founderB) {
-      founderA.equitySwapped += currentVersion.equityFromCompanyA;
-      founderB.equitySwapped += currentVersion.equityFromCompanyB;
-      founderA.updatedAt = new Date().toISOString();
-      founderB.updatedAt = new Date().toISOString();
-      
-      await founderStorage.save(founderA);
-      await founderStorage.save(founderB);
-    }
-  }
-  
-  // Update agreement
+
+  const updatedVersions = [...normalized.versions];
+  updatedVersions[normalized.currentVersion] = updatedVersion;
+
+  const partyRoleIds = getPartyRoleIds(normalized);
+  const everyoneApproved = allPartiesApproved(updatedVersion, partyRoleIds);
+
+  const newStatus: AgreementStatus = everyoneApproved ? 'approved' : normalized.status;
+
   const updatedAgreement: Agreement = {
-    ...agreement,
+    ...normalized,
     status: newStatus,
     versions: updatedVersions,
     updatedAt: new Date().toISOString(),
   };
-  
-  await agreementStorage.save(updatedAgreement);
-  return { success: true, agreement: updatedAgreement };
+
+  const saved = await agreementStorage.save(updatedAgreement);
+  return { success: true, agreement: normalizeAgreement(saved) };
 }
 
-// Mark agreement as completed (requires both founders to have signed)
 export async function completeAgreement(
   agreementId: string,
-  founderId: string
+  roleId: string
 ): Promise<{ success: boolean; agreement?: Agreement; error?: string }> {
   const agreement = await agreementStorage.findById(agreementId);
   if (!agreement) {
     return { success: false, error: 'Agreement not found' };
   }
-  
-  // Check if user is involved in agreement
-  if (agreement.founderAId !== founderId && agreement.founderBId !== founderId) {
+  const normalized = normalizeAgreement(agreement);
+
+  if (!isRoleInAgreement(normalized, roleId)) {
     return { success: false, error: 'You are not authorized to complete this agreement' };
   }
-  
-  // Can only complete approved agreements
-  if (agreement.status !== 'approved') {
+
+  if (normalized.status !== 'approved') {
     return { success: false, error: 'Agreement must be approved before completion' };
   }
-  
-  // Verify both founders have signed
-  const currentVersion = agreement.versions[agreement.currentVersion];
-  const signatures = currentVersion?.signatures || {};
-  if (!signatures[agreement.founderAId] || !signatures[agreement.founderBId]) {
-    return { success: false, error: 'Both founders must sign the agreement before it can be completed' };
+
+  const currentVersion = normalized.versions[normalized.currentVersion];
+  const partyRoleIds = getPartyRoleIds(normalized);
+  if (!currentVersion || !allPartiesApproved(currentVersion, partyRoleIds)) {
+    return {
+      success: false,
+      error: 'All parties must sign the agreement before it can be completed',
+    };
   }
-  
-  // Update agreement
+
   const updatedAgreement: Agreement = {
-    ...agreement,
+    ...normalized,
     status: 'completed',
     updatedAt: new Date().toISOString(),
   };
-  
-  await agreementStorage.save(updatedAgreement);
-  return { success: true, agreement: updatedAgreement };
+
+  const saved = await agreementStorage.save(updatedAgreement);
+  return { success: true, agreement: normalizeAgreement(saved) };
 }
 
-// Get agreement status color
 export function getStatusColor(status: AgreementStatus): string {
   switch (status) {
     case 'proposed':
@@ -323,33 +232,36 @@ export function getStatusColor(status: AgreementStatus): string {
   }
 }
 
-// Get agreement label with version
 export function getAgreementLabel(agreement: Agreement): string {
   return `${agreement.id}-${agreement.currentVersion}`;
 }
 
-// Check if founder can approve agreement
-export function canApproveAgreement(agreement: Agreement, founderId: string): boolean {
+export function canApproveAgreement(agreement: Agreement, roleId: string): boolean {
   if (agreement.status === 'completed') return false;
-  if (agreement.founderAId !== founderId && agreement.founderBId !== founderId) return false;
-  
+  if (!isRoleInAgreement(agreement, roleId)) return false;
+
   const currentVersion = agreement.versions[agreement.currentVersion];
   if (!currentVersion) return false;
-  
-  return !currentVersion.approvedBy.includes(founderId);
+
+  return !currentVersion.approvedBy.includes(roleId);
 }
 
-// Check if founder can revise agreement
-export function canReviseAgreement(agreement: Agreement, founderId: string): boolean {
+export function canReviseAgreement(agreement: Agreement, roleId: string): boolean {
   if (agreement.status === 'completed') return false;
-  return agreement.founderAId === founderId || agreement.founderBId === founderId;
+  return isRoleInAgreement(agreement, roleId);
 }
 
-// Get other founder in agreement
-export async function getOtherFounder(agreement: Agreement, currentFounderId: string): Promise<Founder | null> {
-  const otherFounderId = agreement.founderAId === currentFounderId 
-    ? agreement.founderBId 
-    : agreement.founderAId;
-  
-  return await founderStorage.findById(otherFounderId);
+export async function getOtherRoles(
+  agreement: Agreement,
+  currentRoleId: string
+): Promise<Role[]> {
+  const others = getPartyRoleIds(agreement).filter((id) => id !== currentRoleId);
+  const roles = await Promise.all(others.map((id) => roleStorage.findById(id)));
+  return roles.filter((r): r is Role => r !== null);
+}
+
+/** @deprecated Use getOtherRoles */
+export async function getOtherRole(agreement: Agreement, currentRoleId: string): Promise<Role | null> {
+  const others = await getOtherRoles(agreement, currentRoleId);
+  return others[0] ?? null;
 }

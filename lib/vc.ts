@@ -1,135 +1,100 @@
 import { Agreement } from './types';
+import { getRoleDisplayName } from './types';
 import { getIssuerDid, addressToDid } from './issuer';
-import { founderStorage } from './storage';
+import { roleStorage } from './storage';
 import { userStorage } from './storage';
-import { encodePercent } from './eip712';
-import { keccak256, toHex, stringToHex } from 'viem';
+import { keccak256, stringToHex } from 'viem';
+import { getCommitment, getPartyRoleIds } from './agreementHelpers';
 
-/**
- * Build VC payload for an equity swap agreement
- */
-export async function buildEquitySwapVcPayload(agreement: Agreement): Promise<any> {
+export async function buildInfrastructureAgreementVcPayload(agreement: Agreement): Promise<any> {
   const currentVersion = agreement.versions[agreement.currentVersion];
   if (!currentVersion) {
     throw new Error('Invalid agreement version');
   }
-  
-  // Get founders and their addresses
-  const founderA = await founderStorage.findById(agreement.founderAId);
-  const founderB = await founderStorage.findById(agreement.founderBId);
-  
-  if (!founderA || !founderB) {
-    throw new Error('Founders not found for agreement');
+
+  const partyRoleIds = getPartyRoleIds(agreement);
+  const roles = await Promise.all(partyRoleIds.map((id) => roleStorage.findById(id)));
+  if (roles.some((r) => !r)) {
+    throw new Error('Roles not found for agreement');
   }
-  
-  const userA = await userStorage.findById(founderA.userId);
-  const userB = await userStorage.findById(founderB.userId);
-  
-  if (!userA?.ethereumAddress || !userB?.ethereumAddress) {
-    throw new Error('Founder Ethereum addresses not found');
+
+  const users = await Promise.all(roles.map((role) => userStorage.findById(role!.userId)));
+  if (users.some((u) => !u?.ethereumAddress)) {
+    throw new Error('Role holder Ethereum addresses not found');
   }
-  
-  const partyAAddress = userA.ethereumAddress.toLowerCase();
-  const partyBAddress = userB.ethereumAddress.toLowerCase();
-  
-  // Get signatures and finalized timestamp
-  const sigA = (agreement as any).sigA || null;
-  const sigB = (agreement as any).sigB || null;
-  const finalizedAt = (agreement as any).finalizedAt || new Date().toISOString();
-  
-  // Get terms hash
-  const termsHash = (agreement as any).termsHash || '0x0000000000000000000000000000000000000000000000000000000000000000';
-  
-  const payload = {
+
+  const finalizedAt = agreement.finalizedAt || new Date().toISOString();
+  const termsHash = agreement.termsHash || '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+  const parties = roles.map((role, index) => {
+    const user = users[index]!;
+    const address = user.ethereumAddress!.toLowerCase();
+    return {
+      id: addressToDid(address),
+      ethAddress: address,
+      roleName: getRoleDisplayName(role!),
+      commitment: getCommitment(currentVersion, role!.id),
+      signature: currentVersion.signatures?.[role!.id] ?? null,
+    };
+  });
+
+  return {
     iss: getIssuerDid(),
-    sub: addressToDid(partyAAddress), // Primary subject
+    sub: parties[0]?.id,
     nbf: Math.floor(new Date(finalizedAt).getTime() / 1000),
     vc: {
       '@context': ['https://www.w3.org/ns/credentials/v2'],
-      type: ['VerifiableCredential', 'EquitySwapAgreementCredential'],
+      type: ['VerifiableCredential', 'InfrastructureAgreementCredential'],
       credentialSubject: {
         agreementId: agreement.id,
-        partyA: {
-          id: addressToDid(partyAAddress),
-          ethAddress: partyAAddress,
-          signature: sigA,
-        },
-        partyB: {
-          id: addressToDid(partyBAddress),
-          ethAddress: partyBAddress,
-          signature: sigB,
-        },
-        equitySwap: [
-          {
-            from: addressToDid(partyAAddress),
-            to: addressToDid(partyBAddress),
-            percentage: currentVersion.equityFromCompanyA,
-          },
-          {
-            from: addressToDid(partyBAddress),
-            to: addressToDid(partyAAddress),
-            percentage: currentVersion.equityFromCompanyB,
-          },
-        ],
+        parties,
+        commitments: currentVersion.commitments,
+        notes: currentVersion.notes || '',
         agreementHash: termsHash,
         signedAt: finalizedAt,
       },
     },
   };
-  
-  return payload;
 }
 
-/**
- * Compute terms hash from canonical JSON
- */
+/** @deprecated Use buildInfrastructureAgreementVcPayload */
+export const buildEquitySwapVcPayload = buildInfrastructureAgreementVcPayload;
+
 export function computeTermsHash(canonicalTermsJson: string): `0x${string}` {
-  // Convert string to bytes and hash with keccak256
   const hex = stringToHex(canonicalTermsJson);
   return keccak256(hex);
 }
 
-/**
- * Build canonical terms JSON from agreement
- */
 export async function buildCanonicalTermsJson(agreement: Agreement): Promise<string> {
   const currentVersion = agreement.versions[agreement.currentVersion];
   if (!currentVersion) {
     throw new Error('Invalid agreement version');
   }
-  
-  const founderA = await founderStorage.findById(agreement.founderAId);
-  const founderB = await founderStorage.findById(agreement.founderBId);
-  
-  if (!founderA || !founderB) {
-    throw new Error('Founders not found for agreement');
+
+  const partyRoleIds = getPartyRoleIds(agreement);
+  const roles = await Promise.all(partyRoleIds.map((id) => roleStorage.findById(id)));
+  if (roles.some((r) => !r)) {
+    throw new Error('Roles not found for agreement');
   }
-  
-  const userA = await userStorage.findById(founderA.userId);
-  const userB = await userStorage.findById(founderB.userId);
-  
-  if (!userA?.ethereumAddress || !userB?.ethereumAddress) {
-    throw new Error('Founder Ethereum addresses not found');
+
+  const users = await Promise.all(roles.map((role) => userStorage.findById(role!.userId)));
+  if (users.some((u) => !u?.ethereumAddress)) {
+    throw new Error('Role holder Ethereum addresses not found');
   }
-  
-  // Create canonical JSON object (sorted keys for determinism)
+
   const canonicalTerms = {
     agreementId: agreement.id,
-    partyA: userA.ethereumAddress.toLowerCase(),
-    partyB: userB.ethereumAddress.toLowerCase(),
-    equityAtoB: currentVersion.equityFromCompanyA,
-    equityBtoA: currentVersion.equityFromCompanyB,
+    partyRoleIds,
+    commitments: currentVersion.commitments,
     notes: currentVersion.notes || '',
     version: currentVersion.versionNumber,
     createdAt: agreement.createdAt,
   };
-  
-  // Return sorted JSON string (manually sort keys)
+
   const sortedKeys = Object.keys(canonicalTerms).sort();
-  const sortedTerms: any = {};
+  const sortedTerms: Record<string, unknown> = {};
   for (const key of sortedKeys) {
-    sortedTerms[key] = (canonicalTerms as any)[key];
+    sortedTerms[key] = (canonicalTerms as Record<string, unknown>)[key];
   }
   return JSON.stringify(sortedTerms);
 }
-

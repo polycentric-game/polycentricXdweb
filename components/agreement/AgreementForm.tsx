@@ -1,424 +1,320 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useAccount, useSignMessage } from 'wagmi';
+import React, { useMemo, useState } from 'react';
 import { useAppStore } from '@/lib/store';
-import { createAgreement, proposeRevision, generateCreateAgreementMessage, generateRevisionMessage } from '@/lib/agreements';
-import { validateAgreementEquity } from '@/lib/validation';
-import { getAgreementDisplayNumber } from '@/lib/utils';
+import { createAgreement, proposeRevision } from '@/lib/agreements';
+import { validateAgreementTerms } from '@/lib/validation';
+import { getRoleDisplayName, Agreement } from '@/lib/types';
 import { toast } from '@/lib/toastStore';
-import { Agreement, Founder } from '@/lib/types';
+import { getPartyRoleIds, samePartySet } from '@/lib/agreementHelpers';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card } from '@/components/ui/Card';
 
+const SESSION_SIGNATURE = 'email-session-v1';
+
 interface AgreementFormProps {
   agreement?: Agreement;
+  /** Pre-select counterparty roles when opening from a profile link */
+  defaultCounterpartyRoleIds?: string[];
   onSubmit: (agreement: Agreement) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
 
-export function AgreementForm({ agreement, onSubmit, onCancel, isLoading = false }: AgreementFormProps) {
-  const { address } = useAccount();
-  const { signMessage, data: signatureData, isPending: isSigning, error: signError } = useSignMessage();
-  const { currentFounder, founders, agreements, updateAgreement, addAgreement } = useAppStore();
-  
-  // Get other founders (exclude current founder)
-  const otherFounders = founders.filter(f => f.id !== currentFounder?.id);
-  
-  // Initialize form data
-  const [formData, setFormData] = useState({
-    founderBId: agreement ? (agreement.founderAId === currentFounder?.id ? agreement.founderBId : agreement.founderAId) : '',
-    equityFromA: agreement ? agreement.versions[agreement.currentVersion].equityFromCompanyA : 0.1,
-    equityFromB: agreement ? agreement.versions[agreement.currentVersion].equityFromCompanyB : 0.1,
-    notes: agreement ? agreement.versions[agreement.currentVersion].notes : '',
+function buildInitialCommitments(
+  agreement: Agreement | undefined,
+  partyRoleIds: string[]
+): Record<string, string> {
+  if (!agreement) {
+    return Object.fromEntries(partyRoleIds.map((id) => [id, '']));
+  }
+  const version = agreement.versions[agreement.currentVersion];
+  if (!version) {
+    return Object.fromEntries(partyRoleIds.map((id) => [id, '']));
+  }
+  return Object.fromEntries(
+    partyRoleIds.map((id) => [id, version.commitments[id] ?? ''])
+  );
+}
+
+export function AgreementForm({
+  agreement,
+  defaultCounterpartyRoleIds = [],
+  onSubmit,
+  onCancel,
+  isLoading = false,
+}: AgreementFormProps) {
+  const { currentRole, roles, agreements, updateAgreement, addAgreement } = useAppStore();
+
+  const otherRoles = roles.filter((r) => r.id !== currentRole?.id);
+  const isRevision = Boolean(agreement);
+
+  const partyRoleIds = useMemo(() => {
+    if (agreement) return getPartyRoleIds(agreement);
+    return currentRole ? [currentRole.id] : [];
+  }, [agreement, currentRole]);
+
+  const [selectedCounterpartyIds, setSelectedCounterpartyIds] = useState<string[]>(() => {
+    if (agreement) {
+      return getPartyRoleIds(agreement).filter((id) => id !== currentRole?.id);
+    }
+    const validDefaults = defaultCounterpartyRoleIds.filter((id) =>
+      otherRoles.some((r) => r.id === id)
+    );
+    return validDefaults;
   });
-  
+
+  const activePartyRoleIds = useMemo(() => {
+    if (!currentRole) return [];
+    if (isRevision) return partyRoleIds;
+    return [currentRole.id, ...selectedCounterpartyIds];
+  }, [currentRole, isRevision, partyRoleIds, selectedCounterpartyIds]);
+
+  const currentVersion = agreement?.versions[agreement.currentVersion];
+
+  const [commitments, setCommitments] = useState<Record<string, string>>(() =>
+    buildInitialCommitments(agreement, activePartyRoleIds)
+  );
+  const [notes, setNotes] = useState(currentVersion?.notes ?? '');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [pendingSubmission, setPendingSubmission] = useState<{
-    type: 'create' | 'revision';
-    data: any;
-  } | null>(null);
-  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
-  
-  // Handle signature completion
-  useEffect(() => {
-    if (signatureData && pendingSubmission && pendingMessage && currentFounder) {
-      const processSubmission = async () => {
-        try {
-          let result;
-          
-          if (pendingSubmission.type === 'create') {
-            result = await createAgreement(
-              pendingSubmission.data.founderAId,
-              pendingSubmission.data.founderBId,
-              pendingSubmission.data.equityFromA,
-              pendingSubmission.data.equityFromB,
-              pendingSubmission.data.notes,
-              pendingSubmission.data.initiatedBy,
-              signatureData
-            );
-          } else {
-            result = await proposeRevision(
-              pendingSubmission.data.agreementId,
-              pendingSubmission.data.equityFromA,
-              pendingSubmission.data.equityFromB,
-              pendingSubmission.data.notes,
-              pendingSubmission.data.proposedBy,
-              signatureData
-            );
-          }
-          
-          if (result.success && result.agreement) {
-            if (pendingSubmission.type === 'revision') {
-              updateAgreement(result.agreement);
-              toast.success('Revision Proposed!', 'Your revision has been proposed. The other founder can now review and approve it.');
-            } else {
-              addAgreement(result.agreement);
-              toast.success('Agreement Created!', 'Your equity swap proposal has been sent to the other founder.');
-            }
-            onSubmit(result.agreement);
-          } else {
-            setErrors({ general: result.error || 'Failed to save agreement' });
-          }
-        } catch (error: any) {
-          console.error('Submission error:', error);
-          setErrors({ general: error?.message || 'An unexpected error occurred' });
-        } finally {
-          setSubmitting(false);
-          setPendingSubmission(null);
-          setPendingMessage(null);
+
+  if (!currentRole) return null;
+
+  const toggleCounterparty = (roleId: string) => {
+    setSelectedCounterpartyIds((prev) => {
+      const next = prev.includes(roleId)
+        ? prev.filter((id) => id !== roleId)
+        : [...prev, roleId];
+
+      const nextPartyIds = [currentRole.id, ...next];
+      setCommitments((current) => {
+        const updated = { ...current };
+        for (const id of nextPartyIds) {
+          if (!(id in updated)) updated[id] = '';
         }
-      };
-      
-      processSubmission();
-    }
-  }, [signatureData, pendingSubmission, pendingMessage, currentFounder, updateAgreement, addAgreement, onSubmit]);
+        for (const id of Object.keys(updated)) {
+          if (!nextPartyIds.includes(id)) delete updated[id];
+        }
+        return updated;
+      });
 
-  // Handle signature rejection/error
-  useEffect(() => {
-    if (signError) {
-      const errorMessage = signError.message || '';
-      const errorName = signError.name || '';
-      if (errorMessage.includes('reject') || errorMessage.includes('denied') || errorMessage.includes('User rejected') || errorName.includes('UserRejected')) {
-        toast.error('Signature Rejected', 'You must sign the message to ' + (agreement ? 'propose this revision' : 'create this agreement'));
-      } else {
-        toast.error('Signature Failed', errorMessage || 'Failed to sign message');
-      }
-      setSubmitting(false);
-      setPendingSubmission(null);
-      setPendingMessage(null);
-    }
-  }, [signError, agreement]);
+      return next;
+    });
+    setErrors({});
+  };
 
-  if (!currentFounder) {
-    return null;
-  }
-  
+  const proposedPartySet = [...activePartyRoleIds].sort();
+
+  const existingAgreement =
+    !isRevision && selectedCounterpartyIds.length > 0
+      ? agreements.find((a) => samePartySet(getPartyRoleIds(a), proposedPartySet))
+      : undefined;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!address) {
-      toast.error('Error', 'Wallet address not found');
-      return;
-    }
-    
     setSubmitting(true);
     setErrors({});
-    
+
+    if (!isRevision && selectedCounterpartyIds.length === 0) {
+      setErrors({ parties: 'Select at least one other role for this agreement.' });
+      setSubmitting(false);
+      return;
+    }
+
+    const validationErrors = validateAgreementTerms(activePartyRoleIds, commitments, notes);
+    if (validationErrors.length > 0) {
+      const errorMap: Record<string, string> = {};
+      validationErrors.forEach((err) => {
+        errorMap[err.field] = err.message;
+      });
+      setErrors(errorMap);
+      setSubmitting(false);
+      return;
+    }
+
+    if (existingAgreement) {
+      setErrors({
+        general: 'An agreement with this exact group of roles already exists. Propose a revision on that agreement instead.',
+      });
+      setSubmitting(false);
+      return;
+    }
+
     try {
-      // Validate form
-      if (!formData.founderBId) {
-        setErrors({ founderBId: 'Please select a founder to propose agreement with' });
-        setSubmitting(false);
-        return;
-      }
-      
-      // Validate notes are provided
-      if (!formData.notes || !formData.notes.trim()) {
-        setErrors({ notes: 'Agreement notes are required. Please explain the strategic rationale, key terms, risks, and benefits.' });
-        setSubmitting(false);
-        return;
-      }
-      
-      // Validate equity amounts
-      const validationErrors = await validateAgreementEquity(
-        currentFounder.id,
-        formData.founderBId,
-        formData.equityFromA,
-        formData.equityFromB,
-        agreement?.id
-      );
-      
-      if (validationErrors.length > 0) {
-        const errorMap: Record<string, string> = {};
-        validationErrors.forEach(error => {
-          errorMap[error.field] = error.message;
-        });
-        setErrors(errorMap);
-        setSubmitting(false);
-        return;
-      }
-      
-      // Determine equity amounts for signature message
-      const equityFromThisFounder = agreement?.founderAId === currentFounder.id 
-        ? formData.equityFromA 
-        : formData.equityFromB;
-      const equityFromOther = agreement?.founderAId === currentFounder.id 
-        ? formData.equityFromB 
-        : formData.equityFromA;
-      
-      let message: string;
-      
+      let result;
       if (agreement) {
-        // Generate revision message
-        const agreementDisplayNumber = getAgreementDisplayNumber(agreement, agreements);
-        const versionNumber = agreement.versions.length;
-        message = generateRevisionMessage(
-          agreementDisplayNumber,
-          versionNumber,
-          equityFromThisFounder,
-          equityFromOther,
-          currentFounder.founderName
+        result = await proposeRevision(
+          agreement.id,
+          commitments,
+          notes,
+          currentRole.id,
+          SESSION_SIGNATURE
         );
-        
-        // Store pending submission
-        setPendingSubmission({
-          type: 'revision',
-          data: {
-            agreementId: agreement.id,
-            equityFromA: formData.equityFromA,
-            equityFromB: formData.equityFromB,
-            notes: formData.notes,
-            proposedBy: currentFounder.id,
-          }
-        });
       } else {
-        // Generate propose agreement message
-        const otherFounder = founders.find(f => f.id === formData.founderBId);
-        message = generateCreateAgreementMessage(
-          equityFromThisFounder,
-          equityFromOther,
-          currentFounder.founderName,
-          otherFounder?.founderName || 'the other founder'
+        result = await createAgreement(
+          activePartyRoleIds,
+          commitments,
+          notes,
+          currentRole.id,
+          SESSION_SIGNATURE
         );
-        
-        // Store pending submission
-        setPendingSubmission({
-          type: 'create',
-          data: {
-            founderAId: currentFounder.id,
-            founderBId: formData.founderBId,
-            equityFromA: formData.equityFromA,
-            equityFromB: formData.equityFromB,
-            notes: formData.notes,
-            initiatedBy: currentFounder.id,
-          }
-        });
       }
-      
-      // Store message and prompt for signature
-      setPendingMessage(message);
-      signMessage({ message });
+
+      if (result.success && result.agreement) {
+        if (agreement) {
+          updateAgreement(result.agreement);
+          toast.success('Revision Proposed!', 'All parties can now review and approve.');
+        } else {
+          addAgreement(result.agreement);
+          toast.success('Agreement Created!', 'Your proposal has been sent.');
+        }
+        onSubmit(result.agreement);
+      } else {
+        setErrors({ general: result.error || 'Failed to save agreement' });
+      }
     } catch (error: any) {
-      console.error('Submit error:', error);
       setErrors({ general: error?.message || 'An unexpected error occurred' });
+    } finally {
       setSubmitting(false);
     }
   };
-  
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-  
-  const selectedFounder = founders.find(f => f.id === formData.founderBId);
-  const currentFounderEquity = agreement?.founderAId === currentFounder.id ? formData.equityFromA : formData.equityFromB;
-  const otherFounderEquity = agreement?.founderAId === currentFounder.id ? formData.equityFromB : formData.equityFromA;
-  
+
   return (
     <Card className="max-w-2xl mx-auto">
       <div className="space-y-6">
         <div className="text-center">
           <h2 className="font-space-grotesk font-bold text-2xl text-gray-900 dark:text-gray-100">
-            {agreement ? 'Propose Revision' : 'Create Equity Swap Agreement'}
+            {isRevision ? 'Propose Revision' : 'Propose Agreement'}
           </h2>
           <p className="text-gray-600 dark:text-gray-300 mt-2">
-            {agreement 
-              ? 'Propose new terms for this agreement'
-              : 'Propose an equity swap with another founder'
-            }
+            {isRevision
+              ? 'Update what each party offers and the combined effect.'
+              : 'Select one or more roles, describe each offer, and explain how they combine.'}
           </p>
         </div>
-        
-        {errors.general && (
-          <div className="p-4 rounded-md bg-danger/10 border border-danger/20">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-danger" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-danger font-medium">{errors.general}</p>
-              </div>
-            </div>
+
+        {existingAgreement && (
+          <div className="p-4 rounded-md bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              This group already has an agreement.{' '}
+              <a href={`/agreement/${existingAgreement.id}`} className="underline font-medium">
+                View existing agreement
+              </a>
+            </p>
           </div>
         )}
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Founder Selection (only for new agreements) */}
-          {!agreement && (
-            <Select
-              label="Select Founder"
-              value={formData.founderBId}
-              onChange={(e) => handleInputChange('founderBId', e.target.value)}
-              error={errors.founderBId}
-              options={otherFounders.map(founder => ({
-                value: founder.id,
-                label: `${founder.founderName} (${founder.companyName})`
-              }))}
-              placeholder="Choose a founder to propose agreement with"
-              required
-            />
-          )}
-          
-          {/* Agreement Terms */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                Your Company ({currentFounder.companyName})
-              </h3>
-              <Input
-                label="Equity You Offer (%)"
-                type="number"
-                min="0.001"
-                max="100"
-                step="0.001"
-                value={currentFounderEquity === 0 ? '' : currentFounderEquity}
-                onChange={(e) => {
-                  const inputValue = e.target.value;
-                  // Allow empty string while typing
-                  if (inputValue === '' || inputValue === '-' || inputValue === '.') {
-                    // Store 0 in state when field is empty, so user can type freely
-                    if (agreement?.founderAId === currentFounder.id) {
-                      handleInputChange('equityFromA', 0);
-                    } else {
-                      handleInputChange('equityFromB', 0);
-                    }
-                    return;
-                  }
-                  const value = parseFloat(inputValue);
-                  // Only update if it's a valid number
-                  if (!isNaN(value) && isFinite(value)) {
-                    if (agreement?.founderAId === currentFounder.id) {
-                      handleInputChange('equityFromA', value);
-                    } else {
-                      handleInputChange('equityFromB', value);
-                    }
-                  }
-                }}
-                onBlur={(e) => {
-                  // Ensure we have a valid number on blur, default to 0.1 if empty
-                  const inputValue = e.target.value;
-                  const value = inputValue === '' || inputValue === '-' || inputValue === '.' ? 0.1 : parseFloat(inputValue) || 0.1;
-                  if (agreement?.founderAId === currentFounder.id) {
-                    handleInputChange('equityFromA', value);
-                  } else {
-                    handleInputChange('equityFromB', value);
-                  }
-                }}
-                error={errors.equityFromCompanyA || errors.equityFromCompanyB}
-                helperText={`Available: ${(currentFounder.totalEquityAvailable - currentFounder.equitySwapped).toFixed(3)}%`}
-                required
-              />
-            </div>
-            
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                {selectedFounder ? `${selectedFounder.companyName}` : 'Other Company'}
-              </h3>
-              <Input
-                label="Equity You Request (%)"
-                type="number"
-                min="0.001"
-                max="100"
-                step="0.001"
-                value={otherFounderEquity === 0 ? '' : otherFounderEquity}
-                onChange={(e) => {
-                  const inputValue = e.target.value;
-                  // Allow empty string while typing
-                  if (inputValue === '' || inputValue === '-' || inputValue === '.') {
-                    // Store 0 in state when field is empty, so user can type freely
-                    if (agreement?.founderAId === currentFounder.id) {
-                      handleInputChange('equityFromB', 0);
-                    } else {
-                      handleInputChange('equityFromA', 0);
-                    }
-                    return;
-                  }
-                  const value = parseFloat(inputValue);
-                  // Only update if it's a valid number
-                  if (!isNaN(value) && isFinite(value)) {
-                    if (agreement?.founderAId === currentFounder.id) {
-                      handleInputChange('equityFromB', value);
-                    } else {
-                      handleInputChange('equityFromA', value);
-                    }
-                  }
-                }}
-                onBlur={(e) => {
-                  // Ensure we have a valid number on blur, default to 0.1 if empty
-                  const inputValue = e.target.value;
-                  const value = inputValue === '' || inputValue === '-' || inputValue === '.' ? 0.1 : parseFloat(inputValue) || 0.1;
-                  if (agreement?.founderAId === currentFounder.id) {
-                    handleInputChange('equityFromB', value);
-                  } else {
-                    handleInputChange('equityFromA', value);
-                  }
-                }}
-                error={errors.equityFromCompanyB || errors.equityFromCompanyA}
-                helperText={selectedFounder ? `Available: ${(selectedFounder.totalEquityAvailable - selectedFounder.equitySwapped).toFixed(3)}%` : ''}
-                required
-              />
-            </div>
+
+        {errors.general && (
+          <div className="p-4 rounded-md bg-danger/10 border border-danger/20">
+            <p className="text-sm text-danger font-medium">{errors.general}</p>
           </div>
-          
-          {/* Notes */}
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {!isRevision && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                  Parties ({activePartyRoleIds.length} selected)
+                </label>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  You are always included. Select any other roles in this game.
+                </p>
+              </div>
+              {errors.parties && (
+                <p className="text-sm text-danger">{errors.parties}</p>
+              )}
+              <div className="space-y-2 max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                {otherRoles.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    No other roles in this game yet.
+                  </p>
+                ) : (
+                  otherRoles.map((role) => (
+                    <label
+                      key={role.id}
+                      className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCounterpartyIds.includes(role.id)}
+                        onChange={() => toggleCounterparty(role.id)}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm text-gray-900 dark:text-gray-100">
+                        {getRoleDisplayName(role)}
+                        <span className="text-gray-500 dark:text-gray-400 ml-2">
+                          ({role.template?.archetype ?? 'role'})
+                        </span>
+                      </span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {isRevision && (
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Parties</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                {activePartyRoleIds
+                  .map((id) => {
+                    const role = roles.find((r) => r.id === id);
+                    return role ? getRoleDisplayName(role) : 'Unknown role';
+                  })
+                  .join(' · ')}
+              </p>
+            </div>
+          )}
+
+          {activePartyRoleIds.map((roleId) => {
+            const role = roles.find((r) => r.id === roleId);
+            const name = role ? getRoleDisplayName(role) : 'Unknown role';
+            return (
+              <Textarea
+                key={roleId}
+                label={`What ${name} is offering`}
+                value={commitments[roleId] ?? ''}
+                onChange={(e) => {
+                  setCommitments((prev) => ({ ...prev, [roleId]: e.target.value }));
+                  if (errors[`commitment-${roleId}`]) {
+                    setErrors((prev) => ({ ...prev, [`commitment-${roleId}`]: '' }));
+                  }
+                }}
+                error={errors[`commitment-${roleId}`]}
+                placeholder="Resources, capabilities, or commitments this role brings to the deal."
+                rows={3}
+                required
+              />
+            );
+          })}
+
           <Textarea
-            label="Agreement Notes"
-            value={formData.notes}
-            onChange={(e) => handleInputChange('notes', e.target.value)}
+            label="Combined effect"
+            value={notes}
+            onChange={(e) => {
+              setNotes(e.target.value);
+              if (errors.notes) setErrors((prev) => ({ ...prev, notes: '' }));
+            }}
             error={errors.notes}
-            placeholder="What considerations led to the proposed ratio for this agreement?"
+            placeholder="Describe what happens when all offers are fulfilled — the shared outcome, synergy, or combined impact on the network."
             rows={4}
-            helperText="Required. Explain the arationale, key terms, risks, and benefits for this equity swap."
             required
           />
-          
-          {/* Form Actions */}
+
           <div className="flex flex-col sm:flex-row gap-4 justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onCancel}
-              disabled={submitting || isLoading}
-            >
+            <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting || isLoading}>
               Cancel
             </Button>
             <Button
               type="submit"
-              loading={submitting || isLoading || isSigning}
-              disabled={isSigning}
-              className="sm:min-w-[140px]"
+              loading={submitting || isLoading}
+              disabled={Boolean(existingAgreement) || (!isRevision && selectedCounterpartyIds.length === 0)}
             >
-              {isSigning ? 'Signing Message...' : (agreement ? 'Propose Revision' : 'Propose Agreement')}
+              {isRevision ? 'Propose Revision' : 'Propose Agreement'}
             </Button>
           </div>
         </form>

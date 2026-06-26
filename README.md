@@ -1,4 +1,4 @@
-# Polycentric x Signet
+# Polycentric x DWeb
 
 An instantiation of the Polycentric game engine developed as a partnership with Signet protocol. The game environment is scoped to a game of equity swaps between founders.
 

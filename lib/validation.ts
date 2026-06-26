@@ -1,230 +1,141 @@
-import { Founder, Agreement, ValidationError } from './types';
-import { founderStorage } from './storage';
+import { Role, Agreement, ValidationError } from './types';
 
-// Validate founder form
-export function validateFounder(founder: Partial<Founder>): ValidationError[] {
+export function validateGameTitle(title: string): ValidationError[] {
   const errors: ValidationError[] = [];
-  
-  if (!founder.founderName?.trim()) {
-    errors.push({ field: 'founderName', message: 'Founder name is required' });
+  const trimmed = title.trim();
+  if (!trimmed) {
+    errors.push({ field: 'title', message: 'Game title is required' });
+  } else if (trimmed.length > 120) {
+    errors.push({ field: 'title', message: 'Title must be 120 characters or fewer' });
   }
-  
-  if (!founder.founderType?.trim()) {
-    errors.push({ field: 'founderType', message: 'Founder type is required' });
-  }
-  
-  if (!founder.founderValues || founder.founderValues.length !== 3) {
-    errors.push({ field: 'founderValues', message: 'Exactly 3 founder values are required' });
-  } else {
-    founder.founderValues.forEach((value, index) => {
-      if (!value?.trim()) {
-        errors.push({ field: `founderValues.${index}`, message: `Founder value ${index + 1} is required` });
-      }
-    });
-  }
-  
-  if (!founder.companyName?.trim()) {
-    errors.push({ field: 'companyName', message: 'Company name is required' });
-  }
-  
-  if (!founder.companyDescription?.trim()) {
-    errors.push({ field: 'companyDescription', message: 'Company description is required' });
-  }
-  
-  if (!founder.stage) {
-    errors.push({ field: 'stage', message: 'Company stage is required' });
-  }
-  
-  if (!founder.currentValuationRange?.trim()) {
-    errors.push({ field: 'currentValuationRange', message: 'Valuation range is required' });
-  }
-  
-  if (!founder.revenueStatus?.trim()) {
-    errors.push({ field: 'revenueStatus', message: 'Revenue status is required' });
-  }
-  
-  if (!founder.businessModel?.trim()) {
-    errors.push({ field: 'businessModel', message: 'Business model is required' });
-  }
-  
-  if (!founder.keyAssets || founder.keyAssets.length !== 3) {
-    errors.push({ field: 'keyAssets', message: 'Exactly 3 key assets are required' });
-  } else {
-    founder.keyAssets.forEach((asset, index) => {
-      if (!asset?.trim()) {
-        errors.push({ field: `keyAssets.${index}`, message: `Key asset ${index + 1} is required` });
-      }
-    });
-  }
-  
-  if (!founder.swapMotivation?.trim()) {
-    errors.push({ field: 'swapMotivation', message: 'Swap motivation is required' });
-  }
-  
-  if (!founder.gapsOrNeeds || founder.gapsOrNeeds.length !== 3) {
-    errors.push({ field: 'gapsOrNeeds', message: 'Exactly 3 gaps or needs are required' });
-  } else {
-    founder.gapsOrNeeds.forEach((gap, index) => {
-      if (!gap?.trim()) {
-        errors.push({ field: `gapsOrNeeds.${index}`, message: `Gap or need ${index + 1} is required` });
-      }
-    });
-  }
-  
-  if (typeof founder.totalEquityAvailable !== 'number' || founder.totalEquityAvailable < 0.001 || founder.totalEquityAvailable > 100) {
-    errors.push({ field: 'totalEquityAvailable', message: 'Total equity available must be between 0.001 and 100' });
-  }
-  
   return errors;
 }
 
-// Check if founder has enough equity remaining (synchronous version using founder object)
-export function getEquityRemainingFromFounder(founder: Founder | null | undefined): number {
-  if (!founder) return 0;
-  return founder.totalEquityAvailable - founder.equitySwapped;
-}
-
-// Check if founder has enough equity remaining (async version that fetches founder)
-export async function getEquityRemaining(founderId: string): Promise<number> {
-  const founder = await founderStorage.findById(founderId);
-  return getEquityRemainingFromFounder(founder);
-}
-
-// Validate agreement equity amounts
-export async function validateAgreementEquity(
-  founderAId: string,
-  founderBId: string,
-  equityFromA: number,
-  equityFromB: number,
-  excludeAgreementId?: string
-): Promise<ValidationError[]> {
+export function validateRoleSelection(templateId: string, playerName?: string): ValidationError[] {
   const errors: ValidationError[] = [];
-  
-  if (equityFromA < 0.001) {
-    errors.push({ field: 'equityFromCompanyA', message: 'Equity from Company A must be at least 0.001%' });
+  if (!templateId?.trim()) {
+    errors.push({ field: 'templateId', message: 'Please select a role' });
   }
-  
-  if (equityFromB < 0.001) {
-    errors.push({ field: 'equityFromCompanyB', message: 'Equity from Company B must be at least 0.001%' });
+  if (playerName && playerName.length > 100) {
+    errors.push({ field: 'playerName', message: 'Display name must be 100 characters or fewer' });
   }
-  
-  // Check if founders have enough equity remaining
-  const founderA = await founderStorage.findById(founderAId);
-  const founderB = await founderStorage.findById(founderBId);
-  
-  if (!founderA) {
-    errors.push({ field: 'founderAId', message: 'Founder A not found' });
-    return errors;
-  }
-  
-  if (!founderB) {
-    errors.push({ field: 'founderBId', message: 'Founder B not found' });
-    return errors;
-  }
-  
-  const remainingA = await getEquityRemaining(founderAId);
-  const remainingB = await getEquityRemaining(founderBId);
-  
-  if (equityFromA > remainingA) {
-    errors.push({ 
-      field: 'equityFromCompanyA', 
-      message: `${founderA.companyName} only has ${remainingA}% equity remaining` 
-    });
-  }
-  
-  if (equityFromB > remainingB) {
-    errors.push({ 
-      field: 'equityFromCompanyB', 
-      message: `${founderB.companyName} only has ${remainingB}% equity remaining` 
-    });
-  }
-  
   return errors;
 }
 
-// Validate agreement form
+export function validateAgreementTerms(
+  partyRoleIds: string[],
+  commitments: Record<string, string>,
+  notes: string
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (partyRoleIds.length < 2) {
+    errors.push({
+      field: 'parties',
+      message: 'Select at least one other role to form an agreement.',
+    });
+  }
+
+  for (const roleId of partyRoleIds) {
+    if (!commitments[roleId]?.trim()) {
+      errors.push({
+        field: `commitment-${roleId}`,
+        message: 'Each party must describe what they are offering.',
+      });
+    }
+  }
+
+  if (!notes?.trim()) {
+    errors.push({
+      field: 'notes',
+      message: 'Describe the combined effect when all offers are fulfilled.',
+    });
+  }
+
+  return errors;
+}
+
 export function validateAgreement(agreement: Partial<Agreement>): ValidationError[] {
   const errors: ValidationError[] = [];
-  
-  if (!agreement.founderAId) {
-    errors.push({ field: 'founderAId', message: 'Company A is required' });
+  const partyRoleIds = agreement.partyRoleIds ?? [];
+
+  if (partyRoleIds.length < 2) {
+    errors.push({ field: 'partyRoleIds', message: 'At least two parties are required' });
   }
-  
-  if (!agreement.founderBId) {
-    errors.push({ field: 'founderBId', message: 'Company B is required' });
+
+  if (new Set(partyRoleIds).size !== partyRoleIds.length) {
+    errors.push({ field: 'partyRoleIds', message: 'Duplicate parties are not allowed' });
   }
-  
-  if (agreement.founderAId === agreement.founderBId) {
-    errors.push({ field: 'founderBId', message: 'Cannot create agreement with yourself' });
-  }
-  
+
   if (!agreement.versions || agreement.versions.length === 0) {
     errors.push({ field: 'versions', message: 'Agreement must have at least one version' });
     return errors;
   }
-  
-  const currentVersion = agreement.versions[agreement.currentVersion || 0];
+
+  const currentVersion = agreement.versions[agreement.currentVersion ?? 0];
   if (!currentVersion) {
     errors.push({ field: 'currentVersion', message: 'Invalid current version' });
     return errors;
   }
-  
-  // Validate notes are provided
-  if (!currentVersion.notes || !currentVersion.notes.trim()) {
-    errors.push({ field: 'notes', message: 'Agreement notes are required. Please explain the strategic rationale, key terms, risks, and benefits.' });
-  }
-  
-  // Note: validateAgreementEquity is async, but validateAgreement is synchronous
-  // For now, we'll skip async validation in this function
-  // Callers should use validateAgreementEquity directly if async validation is needed
-  
+
+  errors.push(
+    ...validateAgreementTerms(partyRoleIds, currentVersion.commitments, currentVersion.notes)
+  );
+
   return errors;
 }
 
-// Check if email is valid
 export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
 
-// Validate sign-in form
-export function validateSignIn(email: string, password: string): ValidationError[] {
+export function validateMagicLinkEmail(email: string): ValidationError[] {
   const errors: ValidationError[] = [];
-  
   if (!email.trim()) {
     errors.push({ field: 'email', message: 'Email is required' });
-  } else if (!isValidEmail(email)) {
+  } else if (!isValidEmail(email.trim())) {
     errors.push({ field: 'email', message: 'Please enter a valid email address' });
   }
-  
-  if (!password) {
-    errors.push({ field: 'password', message: 'Password is required' });
-  }
-  
   return errors;
 }
 
-// Validate sign-up form
-export function validateSignUp(email: string, password: string, confirmPassword: string): ValidationError[] {
+export function validateSignIn(email: string, password: string): ValidationError[] {
   const errors: ValidationError[] = [];
-  
+
   if (!email.trim()) {
     errors.push({ field: 'email', message: 'Email is required' });
   } else if (!isValidEmail(email)) {
     errors.push({ field: 'email', message: 'Please enter a valid email address' });
   }
-  
+
+  if (!password) {
+    errors.push({ field: 'password', message: 'Password is required' });
+  }
+
+  return errors;
+}
+
+export function validateSignUp(email: string, password: string, confirmPassword: string): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (!email.trim()) {
+    errors.push({ field: 'email', message: 'Email is required' });
+  } else if (!isValidEmail(email)) {
+    errors.push({ field: 'email', message: 'Please enter a valid email address' });
+  }
+
   if (!password) {
     errors.push({ field: 'password', message: 'Password is required' });
   } else if (password.length < 6) {
     errors.push({ field: 'password', message: 'Password must be at least 6 characters' });
   }
-  
+
   if (!confirmPassword) {
     errors.push({ field: 'confirmPassword', message: 'Please confirm your password' });
   } else if (password !== confirmPassword) {
     errors.push({ field: 'confirmPassword', message: 'Passwords do not match' });
   }
-  
+
   return errors;
 }

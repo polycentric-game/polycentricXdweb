@@ -1,5 +1,5 @@
 import { Agreement } from './types';
-import { buildEquitySwapVcPayload } from './vc';
+import { buildInfrastructureAgreementVcPayload } from './vc';
 import { agreementStorage } from './storage';
 import { hexToBytes } from 'viem';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
@@ -157,7 +157,7 @@ export async function signJwt(payload: any): Promise<string> {
 /**
  * Issue a Verifiable Credential JWT for an agreement
  */
-export async function issueEquitySwapVcJwt(agreementId: string): Promise<string> {
+export async function issueAgreementVcJwt(agreementId: string): Promise<string> {
   // Load agreement
   const agreement = await agreementStorage.findById(agreementId);
   if (!agreement) {
@@ -178,7 +178,7 @@ export async function issueEquitySwapVcJwt(agreementId: string): Promise<string>
   }
   
   // Build VC payload
-  const payload = await buildEquitySwapVcPayload(agreement);
+  const payload = await buildInfrastructureAgreementVcPayload(agreement);
   
   // Sign JWT
   const jwt = await signJwt(payload);
@@ -193,4 +193,7 @@ export async function issueEquitySwapVcJwt(agreementId: string): Promise<string>
   
   return jwt;
 }
+
+/** @deprecated Use issueAgreementVcJwt */
+export const issueEquitySwapVcJwt = issueAgreementVcJwt;
 

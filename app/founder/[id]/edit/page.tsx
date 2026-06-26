@@ -3,9 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
-import { founderStorage } from '@/lib/storage';
-import { Founder } from '@/lib/types';
-import { FounderForm } from '@/components/founder/FounderForm';
+import { roleStorage } from '@/lib/storage';
+import { Role, getRoleDisplayName } from '@/lib/types';
+import { validateRoleSelection } from '@/lib/validation';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Card } from '@/components/ui/Card';
 import { LoadingState } from '@/components/ui/LoadingSpinner';
 
 interface EditFounderPageProps {
@@ -14,114 +17,131 @@ interface EditFounderPageProps {
 
 export default function EditFounderPage({ params }: EditFounderPageProps) {
   const router = useRouter();
-  const { session, user, currentFounder, updateFounder, setCurrentFounder, refreshData } = useAppStore();
-  const [founder, setFounder] = useState<Founder | null>(null);
+  const { session, user, currentRole, updateRole, setCurrentRole, refreshData } = useAppStore();
+  const [role, setRole] = useState<Role | null>(null);
+  const [playerName, setPlayerName] = useState('');
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  
+  const [error, setError] = useState('');
+
   useEffect(() => {
     if (!session) {
       router.push('/');
       return;
     }
-    
-    const loadFounder = async () => {
+
+    const loadRole = async () => {
       try {
-        const foundFounder = await founderStorage.findById(params.id);
-        if (!foundFounder) {
+        const foundRole = await roleStorage.findById(params.id);
+        if (!foundRole) {
           router.push('/game');
           return;
         }
-        
-        // Verify this is the current user's founder by checking userId
-        // Also check currentFounder as an additional safeguard
-        if (!user || (foundFounder.userId !== user.id) || (currentFounder?.id !== foundFounder.id)) {
+
+        if (!user || foundRole.userId !== user.id || currentRole?.id !== foundRole.id) {
           router.push(`/founder/${params.id}`);
           return;
         }
-        
-        setFounder(foundFounder);
-      } catch (error) {
-        console.error('Failed to load founder:', error);
+
+        setRole(foundRole);
+        setPlayerName(foundRole.playerName ?? '');
+      } catch (err) {
+        console.error('Failed to load role:', err);
         router.push(`/founder/${params.id}`);
       } finally {
         setLoading(false);
       }
     };
-    
-    loadFounder();
-  }, [params.id, session, user, router, currentFounder]);
-  
-  const handleSubmit = async (founderData: Omit<Founder, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
-    if (!founder) return;
-    
+
+    loadRole();
+  }, [params.id, session, user, router, currentRole]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!role) return;
+
+    const validationErrors = validateRoleSelection(role.templateId, playerName);
+    if (validationErrors.length > 0) {
+      setError(validationErrors[0].message);
+      return;
+    }
+
     setIsSaving(true);
-    
+    setError('');
+
     try {
-      const updatedFounder: Founder = {
-        ...founderData,
-        id: founder.id,
-        userId: founder.userId,
-        createdAt: founder.createdAt,
+      const updatedRole: Role = {
+        ...role,
+        playerName: playerName.trim() || undefined,
         updatedAt: new Date().toISOString(),
-        // Preserve equitySwapped from the original founder (it's calculated from agreements, not user input)
-        // The form field is disabled, so founderData.equitySwapped should match, but we use the DB value as source of truth
-        equitySwapped: founder.equitySwapped,
       };
-      
-      // Update founder in database
-      await updateFounder(updatedFounder);
-      
-      // Update store with current founder (this also updates the session)
-      await setCurrentFounder(updatedFounder);
-      
-      // Refresh data to ensure everything is in sync
+
+      await updateRole(updatedRole);
+      await setCurrentRole(updatedRole);
       await refreshData();
-      
-      // Redirect back to founder profile
-      router.push(`/founder/${founder.id}`);
-    } catch (error) {
-      console.error('Failed to update founder:', error);
-      alert('Failed to update founder profile. Please try again.');
+      router.push(`/founder/${role.id}`);
+    } catch (err) {
+      console.error('Failed to update role:', err);
+      setError('Failed to update profile. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
-  
-  const handleCancel = () => {
-    router.push(`/founder/${params.id}`);
-  };
-  
+
   if (!session) {
-    return null; // Will redirect
+    return null;
   }
-  
+
   if (loading) {
-    return <LoadingState message="Loading founder profile..." />;
+    return <LoadingState message="Loading role profile..." />;
   }
-  
-  if (!founder) {
+
+  if (!role) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-          Founder Not Found
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Role Not Found</h1>
         <p className="text-gray-600 dark:text-gray-300 mb-6">
-          The founder profile you're looking for doesn't exist.
+          The role profile you&apos;re looking for doesn&apos;t exist.
         </p>
       </div>
     );
   }
-  
+
   return (
-    <div className="max-w-6xl mx-auto">
-      <FounderForm
-        founder={founder}
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isLoading={isSaving}
-      />
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div>
+        <h1 className="font-space-grotesk font-bold text-3xl text-gray-900 dark:text-gray-100">
+          Edit Profile
+        </h1>
+        <p className="text-gray-600 dark:text-gray-300 mt-2">
+          Role: {role.template?.name ?? 'Unknown'} ({getRoleDisplayName(role)})
+        </p>
+      </div>
+
+      <Card>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input
+            label="Display name (optional)"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+            error={error}
+            placeholder="Your in-game name"
+          />
+
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Your role template cannot be changed after claiming. Only your display name is editable.
+          </p>
+
+          <div className="flex gap-4 justify-end">
+            <Button type="button" variant="secondary" onClick={() => router.push(`/founder/${role.id}`)}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={isSaving}>
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </Card>
     </div>
   );
 }
-

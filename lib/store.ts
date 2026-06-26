@@ -1,109 +1,147 @@
 import { create } from 'zustand';
-import { User, Founder, Agreement, AuthSession, Theme } from './types';
-import { getCurrentSession, getCurrentUser } from './auth';
-import { founderStorage, agreementStorage, sessionStorage, themeStorage } from './storage';
+import { User, Role, Agreement, AuthSession, Theme, Game } from './types';
+import { getAuthSessionAndUser } from './auth';
+import { gameStorage, roleStorage, agreementStorage, themeStorage } from './storage';
 import { initializeSampleData } from './sampleData';
+import { loadGameData } from './games';
+import { clearStoredGameId, getStoredGameId, setStoredGameId } from './gameContext';
+import {
+  DEMO_GAME,
+  getDemoGameData,
+  isDemoGame,
+  mergeGamesWithDemo,
+} from './demoGame';
 
 interface AppState {
-  // Auth state
   session: AuthSession | null;
   user: User | null;
-  currentFounder: Founder | null;
-  
-  // Theme
+  currentGame: Game | null;
+  currentRole: Role | null;
   theme: Theme;
-  
-  // Data cache
-  founders: Founder[];
+  games: Game[];
+  roles: Role[];
   agreements: Agreement[];
-  
-  // Loading states
   isLoading: boolean;
-  
-  // Actions
   initializeApp: () => void;
   setSession: (session: AuthSession | null, user: User | null) => void;
   clearSession: () => void;
-  setCurrentFounder: (founder: Founder | null) => Promise<void>;
+  setCurrentGame: (game: Game | null) => Promise<void>;
+  setCurrentRole: (role: Role | null) => Promise<void>;
+  enterGame: (game: Game, role: Role) => Promise<void>;
+  switchGame: (game: Game) => Promise<void>;
+  leaveGame: () => void;
   setTheme: (theme: Theme) => void;
-  refreshData: () => void;
-  addFounder: (founder: Founder) => void;
-  updateFounder: (founder: Founder) => void;
+  refreshGames: () => Promise<void>;
+  refreshGameData: (gameId?: string) => Promise<void>;
+  refreshData: (gameId?: string) => Promise<void>;
+  addRole: (role: Role) => Promise<Role>;
+  updateRole: (role: Role) => void;
   addAgreement: (agreement: Agreement) => void;
   updateAgreement: (agreement: Agreement) => void;
 }
 
+async function restoreGameContext(userId: string): Promise<{
+  game: Game | null;
+  role: Role | null;
+}> {
+  const storedGameId = getStoredGameId();
+  if (!storedGameId) return { game: null, role: null };
+
+  if (isDemoGame(storedGameId)) {
+    return { game: DEMO_GAME, role: null };
+  }
+
+  const game = await gameStorage.findById(storedGameId);
+  if (!game) {
+    clearStoredGameId();
+    return { game: null, role: null };
+  }
+
+  const role = await roleStorage.findByGameAndUser(storedGameId, userId);
+  return { game, role };
+}
+
+async function loadRolesAndAgreementsForGame(game: Game): Promise<{
+  roles: Role[];
+  agreements: Agreement[];
+}> {
+  if (isDemoGame(game)) {
+    const { roles, agreements } = getDemoGameData();
+    return { roles, agreements };
+  }
+  return loadGameData(game.id);
+}
+
 export const useAppStore = create<AppState>((set, get) => ({
-  // Initial state
   session: null,
   user: null,
-  currentFounder: null,
+  currentGame: null,
+  currentRole: null,
   theme: 'light',
-  founders: [],
+  games: [],
+  roles: [],
   agreements: [],
   isLoading: true,
-  
-  // Initialize app - load session, theme, and data
+
   initializeApp: async () => {
     try {
-      const session = getCurrentSession();
-      const user = session ? await getCurrentUser() : null;
       const theme = themeStorage.get();
-      
-      // Try to load data, but handle missing tables gracefully
-      let founders: Founder[] = [];
-      let agreements: Agreement[] = [];
-      
+      let games: Game[] = [];
+
+      const authPromise = getAuthSessionAndUser();
+
       try {
-        founders = await founderStorage.getAll();
-        agreements = await agreementStorage.getAll();
-        
-        // Initialize sample data if needed
+        games = mergeGamesWithDemo(await gameStorage.getAll());
         await initializeSampleData();
+        games = mergeGamesWithDemo(await gameStorage.getAll());
       } catch (dbError: any) {
-        // Check if it's a table missing error
         if (dbError?.code === 'PGRST205' || dbError?.message?.includes('Could not find the table')) {
           console.warn('Database tables not found. Please run the migration:', dbError.message);
-          // Continue with empty arrays - app will still work, just no data
         } else {
-          throw dbError; // Re-throw if it's a different error
+          console.warn('Failed to load games:', dbError?.message ?? dbError);
         }
+        games = mergeGamesWithDemo([]);
       }
-      
-      let currentFounder: Founder | null = null;
-      if (session?.founderId) {
+
+      const { session: storeSession, user: storeUser } = get();
+      const { session: authSession, user: authUser } = await authPromise;
+
+      const session = authSession ?? storeSession;
+      const user = authUser ?? storeUser;
+
+      let currentGame: Game | null = null;
+      let currentRole: Role | null = null;
+      let roles: Role[] = [];
+      let agreements: Agreement[] = [];
+
+      if (user) {
         try {
-          currentFounder = await founderStorage.findById(session.founderId);
-        } catch (error) {
-          // Table might not exist, that's okay
-          console.warn('Could not load founder:', error);
-        }
-      } else if (user) {
-        try {
-          // Auto-select founder if user has one
-          currentFounder = await founderStorage.findByUserId(user.id);
-          if (currentFounder && session) {
-            session.founderId = currentFounder.id;
-            // Update session in storage
-            await sessionStorage.save(session);
+          const restored = await restoreGameContext(user.id);
+          currentGame = restored.game;
+          currentRole = restored.role;
+
+          if (currentGame) {
+            const data = await loadRolesAndAgreementsForGame(currentGame);
+            roles = data.roles;
+            agreements = data.agreements;
           }
-        } catch (error) {
-          // Table might not exist, that's okay
-          console.warn('Could not load founder by user:', error);
+        } catch (err) {
+          console.warn('Failed to restore game context:', err);
         }
       }
-      
+
       set({
         session,
         user,
-        currentFounder,
-        theme,
-        founders,
+        currentGame,
+        currentRole,
+        games,
+        roles,
         agreements,
+        theme,
         isLoading: false,
       });
-      
-      // Apply theme to document
+
       if (typeof window !== 'undefined') {
         document.documentElement.classList.toggle('dark', theme === 'dark');
       }
@@ -112,108 +150,144 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ isLoading: false });
     }
   },
-  
-  // Set authentication session
+
   setSession: async (session, user) => {
-    try {
-      let currentFounder: Founder | null = null;
-      if (session?.founderId) {
-        currentFounder = await founderStorage.findById(session.founderId);
-      } else if (user) {
-        currentFounder = await founderStorage.findByUserId(user.id);
-        if (currentFounder && session) {
-          // Update session with founder ID
-          session.founderId = currentFounder.id;
-          await sessionStorage.save(session);
+    if (session && user) {
+      set({ session, user });
+
+      try {
+        const restored = await restoreGameContext(user.id);
+        let roles: Role[] = [];
+        let agreements: Agreement[] = [];
+        if (restored.game) {
+          const data = await loadRolesAndAgreementsForGame(restored.game);
+          roles = data.roles;
+          agreements = data.agreements;
         }
+        set({
+          currentGame: restored.game,
+          currentRole: restored.role,
+          roles,
+          agreements,
+        });
+      } catch (err) {
+        console.warn('Failed to restore game context:', err);
       }
-      
-      set({ session, user, currentFounder });
-    } catch (error) {
-      console.error('Failed to set session:', error);
-      set({ session, user, currentFounder: null });
+    } else {
+      set({ session, user, currentGame: null, currentRole: null, roles: [], agreements: [] });
     }
   },
-  
-  // Clear authentication session
+
   clearSession: () => {
-    set({ session: null, user: null, currentFounder: null });
+    clearStoredGameId();
+    set({
+      session: null,
+      user: null,
+      currentGame: null,
+      currentRole: null,
+      roles: [],
+      agreements: [],
+    });
   },
-  
-  // Set current founder
-  setCurrentFounder: async (founder) => {
-    const { session } = get();
-    if (session && founder) {
-      session.founderId = founder.id;
-      // Update session in storage
-      await sessionStorage.save(session);
+
+  setCurrentGame: async (game) => {
+    if (game) {
+      setStoredGameId(game.id);
+      const { roles, agreements } = await loadRolesAndAgreementsForGame(game);
+      set({ currentGame: game, roles, agreements, currentRole: null });
+    } else {
+      clearStoredGameId();
+      set({ currentGame: null, currentRole: null, roles: [], agreements: [] });
     }
-    set({ currentFounder: founder });
   },
-  
-  // Set theme
+
+  setCurrentRole: async (role) => {
+    set({ currentRole: role });
+  },
+
+  enterGame: async (game, role) => {
+    if (isDemoGame(game)) return;
+    setStoredGameId(game.id);
+    const { roles, agreements } = await loadGameData(game.id);
+    set({ currentGame: game, currentRole: role, roles, agreements });
+  },
+
+  switchGame: async (game) => {
+    setStoredGameId(game.id);
+    if (isDemoGame(game)) {
+      const { roles, agreements } = getDemoGameData();
+      set({ currentGame: game, currentRole: null, roles, agreements });
+      return;
+    }
+    const userId = get().user?.id;
+    let currentRole: Role | null = null;
+    if (userId) {
+      currentRole = await roleStorage.findByGameAndUser(game.id, userId);
+    }
+    const { roles, agreements } = await loadGameData(game.id);
+    set({ currentGame: game, currentRole, roles, agreements });
+  },
+
+  leaveGame: () => {
+    clearStoredGameId();
+    set({ currentGame: null, currentRole: null, roles: [], agreements: [] });
+  },
+
   setTheme: (theme) => {
     themeStorage.save(theme);
     set({ theme });
-    
-    // Apply theme to document
     if (typeof window !== 'undefined') {
       document.documentElement.classList.toggle('dark', theme === 'dark');
     }
   },
-  
-  // Refresh data from storage
-  refreshData: async () => {
+
+  refreshGames: async () => {
     try {
-      const founders = await founderStorage.getAll();
-      const agreements = await agreementStorage.getAll();
-      set({ founders, agreements });
+      const games = mergeGamesWithDemo(await gameStorage.getAll());
+      set({ games });
     } catch (error) {
-      console.error('Failed to refresh data:', error);
+      console.error('Failed to refresh games:', error);
+      set({ games: mergeGamesWithDemo([]) });
     }
   },
-  
-  // Add founder
-  addFounder: async (founder) => {
+
+  refreshGameData: async (gameId) => {
+    const id = gameId ?? get().currentGame?.id;
+    if (!id) return;
     try {
-      const savedFounder = await founderStorage.save(founder);
-      const founders = [...get().founders, savedFounder];
-      set({ founders });
+      const game = get().currentGame ?? (isDemoGame(id) ? DEMO_GAME : await gameStorage.findById(id));
+      if (!game) return;
+      const { roles, agreements } = await loadRolesAndAgreementsForGame(game);
+      set({ roles, agreements });
     } catch (error) {
-      console.error('Failed to add founder:', error);
+      console.error('Failed to refresh game data:', error);
     }
   },
-  
-  // Update founder
-  updateFounder: async (founder) => {
-    try {
-      const updatedFounder = await founderStorage.save(founder);
-      const founders = get().founders.map(f => f.id === founder.id ? updatedFounder : f);
-      set({ founders });
-    } catch (error) {
-      console.error('Failed to update founder:', error);
-    }
+
+  refreshData: async (gameId) => {
+    await get().refreshGameData(gameId);
   },
-  
-  // Add agreement
+
+  addRole: async (role) => {
+    const savedRole = await roleStorage.save(role);
+    set({ roles: [...get().roles, savedRole] });
+    return savedRole;
+  },
+
+  updateRole: async (role) => {
+    const updatedRole = await roleStorage.save(role);
+    set({ roles: get().roles.map((r) => (r.id === role.id ? updatedRole : r)) });
+  },
+
   addAgreement: async (agreement) => {
-    try {
-      const savedAgreement = await agreementStorage.save(agreement);
-      const agreements = [...get().agreements, savedAgreement];
-      set({ agreements });
-    } catch (error) {
-      console.error('Failed to add agreement:', error);
-    }
+    const savedAgreement = await agreementStorage.save(agreement);
+    set({ agreements: [...get().agreements, savedAgreement] });
   },
-  
-  // Update agreement
+
   updateAgreement: async (agreement) => {
-    try {
-      const updatedAgreement = await agreementStorage.save(agreement);
-      const agreements = get().agreements.map(a => a.id === agreement.id ? updatedAgreement : a);
-      set({ agreements });
-    } catch (error) {
-      console.error('Failed to update agreement:', error);
-    }
+    const updatedAgreement = await agreementStorage.save(agreement);
+    set({
+      agreements: get().agreements.map((a) => (a.id === agreement.id ? updatedAgreement : a)),
+    });
   },
 }));

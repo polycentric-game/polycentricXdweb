@@ -2,106 +2,86 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useAccount } from 'wagmi';
 import { useAppStore } from '@/lib/store';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
 export default function HomePage() {
-  const { session, currentFounder } = useAppStore();
-  const { isConnected } = useAccount();
-  
-  // Show button if we have a session OR if wallet is connected (session might still be loading)
-  const isAuthenticated = session || isConnected;
-  
-  
+  const { session, user } = useAppStore();
+  const isAuthenticated = Boolean(session && user);
+
   return (
     <div className="max-w-4xl mx-auto space-y-12">
-      {/* Hero Section */}
       <div className="text-center space-y-6">
         <h1 className="font-space-grotesk font-bold text-4xl md:text-6xl text-gray-900 dark:text-gray-100">
           Welcome to{' '}
           <span className="text-primary">Polycentric</span>
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          The equity swap negotiation game where founders create agreements to exchange equity between their companies.
+          The DWeb Nomad Infrastructure negotiation game. Sign in, explore the role deck, and
+          prepare for collaborative infrastructure building.
         </p>
-        <div className="flex justify-center space-x-4">
+        <div className="flex flex-wrap justify-center gap-4">
+          <Link href="/claim-role">
+            <Button size="lg" variant="secondary">
+              Browse Roles
+            </Button>
+          </Link>
           {isAuthenticated ? (
-            <div className="flex space-x-4">
-              {currentFounder ? (
-                <Link href={`/founder/${currentFounder.id}`}>
-                  <Button size="lg" variant="secondary">
-                    View Profile
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/create-founder">
-                  <Button size="lg" variant="secondary">
-                    Create Profile
-                  </Button>
-                </Link>
-              )}
-              <Link href="/game">
-                <Button size="lg">
-                  Join Game
+            <>
+              <Link href="/profile">
+                <Button size="lg" variant="secondary">
+                  Your account
                 </Button>
               </Link>
-            </div>
+              <Link href="/games">
+                <Button size="lg">Games</Button>
+              </Link>
+            </>
           ) : (
-            <p className="text-gray-600 dark:text-gray-300">
-              Connect your wallet in the header to get started
-            </p>
+            <Link href="/login">
+              <Button size="lg">Sign in</Button>
+            </Link>
           )}
         </div>
       </div>
-      
-      {/* Features */}
+
       <div className="grid md:grid-cols-3 gap-8">
         <Card>
           <div className="space-y-4">
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <div className="h-6 w-6 rounded-full bg-primary" />
-            </div>
             <h3 className="font-space-grotesk font-semibold text-xl text-gray-900 dark:text-gray-100">
-              Create Your Profile
+              Sign in with email
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Build your founder persona with company details, values, and equity availability.
+              No wallet required. Enter your email and we&apos;ll send a magic link to sign in.
             </p>
           </div>
         </Card>
-        
+
         <Card>
           <div className="space-y-4">
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <div className="h-6 w-6 rounded-full bg-primary" />
-            </div>
             <h3 className="font-space-grotesk font-semibold text-xl text-gray-900 dark:text-gray-100">
-              Negotiate Agreements
+              Browse the deck
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Propose equity swaps, revise terms, and reach mutually beneficial agreements.
+              Explore all 31 roles from the DWeb Nomad Infrastructure deck before joining a game.
             </p>
           </div>
         </Card>
-        
+
         <Card>
           <div className="space-y-4">
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <div className="h-6 w-6 rounded-full bg-primary" />
-            </div>
             <h3 className="font-space-grotesk font-semibold text-xl text-gray-900 dark:text-gray-100">
-              Visualize Network
+              Join a game
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Explore the interactive graph of founders and their equity relationships.
+              Create or join a game session, claim a role from the deck, and negotiate agreements
+              with other players.
             </p>
           </div>
         </Card>
       </div>
-      
-      {/* How It Works */}
+
       <div className="space-y-8">
         <h2 className="font-space-grotesk font-bold text-3xl text-center text-gray-900 dark:text-gray-100">
           How It Works
@@ -113,52 +93,40 @@ export default function HomePage() {
             </div>
             <div>
               <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                Connect Wallet & Create Profile
+                Sign in with magic link
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Connect your Ethereum wallet, then create your founder profile with company details.
+                Enter your email to receive a sign-in link. Your account is separate from any game
+                or role.
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-start space-x-4">
             <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary text-black font-bold flex items-center justify-center">
               2
             </div>
             <div>
               <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                Explore the Network
+                Join or create a game
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Browse the interactive graph to discover other founders and potential collaboration opportunities.
+                Create a game with a unique title or join an existing one from the games lobby.
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-start space-x-4">
             <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary text-black font-bold flex items-center justify-center">
               3
             </div>
             <div>
               <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                Propose Equity Swaps
+                Claim a role & negotiate
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Create agreements offering your equity in exchange for equity from other companies.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start space-x-4">
-            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary text-black font-bold flex items-center justify-center">
-              4
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                Negotiate & Finalize
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                Revise terms, approve agreements, and export finalized contracts for real-world implementation.
+                Within your game, choose a role from the deck and forge multi-party agreements through
+                narrative commitments.
               </p>
             </div>
           </div>
