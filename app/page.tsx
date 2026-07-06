@@ -12,38 +12,67 @@ export default function HomePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-12">
-      <div className="text-center space-y-6">
-        <h1 className="font-space-grotesk font-bold text-4xl md:text-6xl text-gray-900 dark:text-gray-100">
-          Welcome to{' '}
-          <span className="text-primary">Polycentric</span>
+      <div className="space-y-6">
+        <h1 className="font-space-grotesk font-bold text-2xl md:text-3xl leading-snug text-gray-900 dark:text-gray-100">
+          <i>Polycentricity</i> is a roleplaying game engine for
+          exploring emergent cooperation where players build simple agreements with one another,
+          building up a complex network of agreements over the duration of play. Any scenario can be
+          applied to a game of polycentricity, and the scenario here was imagined for DWeb Camp
+          Berlin 2026, based on the essay{' '}
+          <span className="text-primary"><em className="italic"><a href="https://vengist.substack.com/p/toward-a-nomad-web" target="_blank" rel="noopener noreferrer">Toward a Nomad Web</a></em></span>.
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          The DWeb Nomad Infrastructure negotiation game. Sign in, explore the role deck, and
-          prepare for collaborative infrastructure building.
-        </p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link href="/claim-role">
-            <Button size="lg" variant="secondary">
-              Browse Roles
-            </Button>
-          </Link>
-          {isAuthenticated ? (
-            <>
-              <Link href="/profile">
-                <Button size="lg" variant="secondary">
-                  Your account
-                </Button>
-              </Link>
-              <Link href="/games">
-                <Button size="lg">Games</Button>
-              </Link>
-            </>
-          ) : (
+      </div>
+
+      <Card className="space-y-5">
+        <h2 className="font-space-grotesk font-bold text-2xl text-gray-900 dark:text-gray-100">
+          Scenario: Nomad Infrastructure
+        </h2>
+        <div className="space-y-4 text-gray-600 dark:text-gray-300 leading-relaxed">
+          <p>
+            Nomads live a life exterior to the State, holding territory through movement — a mode
+            where settlement is subordinate to trajectory. They live in nomad space. The internet has
+            become a platform-State which, like all states, is a mode that restricts all other modes,
+            enclosing territories to ban movement. Nomads are not to be read as migratory by nature,
+            but have been forced into that pattern by the platform-State&apos;s unceasing vectors of
+            enclosure. What sort of collective assemblage can be brought together from disparate
+            parts of the DWeb ecosystem toward a coherent and functional decentralized web that
+            could compete as a durable alternative to the platform-State?
+          </p>
+          <p>
+            In this game, players assume a role within the dweb ecosystem and cooperate to answer
+            this question. There is no set victory condition for individual players; there is only
+            the collective goal to build as much infrastructure as possible within the duration of
+            the game. The game can be replayed infinitely, to discover different and novel possible
+            paths to counter the platform-State. Or even continued beyond its initial duration, to
+            continue building on a network of agreements that shows potential.
+          </p>
+        </div>
+      </Card>
+
+      <div className="flex flex-wrap justify-center gap-4">
+        {isAuthenticated ? (
+          <>
+            <Link href="/games">
+              <Button size="lg">Join game</Button>
+            </Link>
+            <Link href="/claim-role">
+              <Button size="lg" variant="secondary">
+                Browse roles
+              </Button>
+            </Link>
+          </>
+        ) : (
+          <>
             <Link href="/login">
               <Button size="lg">Sign in</Button>
             </Link>
-          )}
-        </div>
+            <Link href="/games">
+              <Button size="lg" variant="secondary">
+                Join game
+              </Button>
+            </Link>
+          </>
+        )}
       </div>
 
       <div className="grid md:grid-cols-3 gap-8">
@@ -53,7 +82,7 @@ export default function HomePage() {
               Sign in with email
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              No wallet required. Enter your email and we&apos;ll send a magic link to sign in.
+              Enter your email and we&apos;ll send a magic link to sign in.
             </p>
           </div>
         </Card>
