@@ -24,6 +24,17 @@ export const DEFAULT_GRAPH_FILTERS: GraphFilterState = {
   minPairWeight: 1,
 };
 
+/** Count how many filters differ from defaults (for toolbar badge). */
+export function countActiveFilterDeviations(filters: GraphFilterState): number {
+  let count = 0;
+  if (filters.enabledStatuses.length < ALL_AGREEMENT_STATUSES.length) {
+    count += ALL_AGREEMENT_STATUSES.length - filters.enabledStatuses.length;
+  }
+  if (filters.minPartySize > DEFAULT_GRAPH_FILTERS.minPartySize) count += 1;
+  if (filters.minPairWeight > DEFAULT_GRAPH_FILTERS.minPairWeight) count += 1;
+  return count;
+}
+
 export function filterAgreementsForGraph(
   agreements: Agreement[],
   filters: GraphFilterState

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAppStore } from '@/lib/store';
 import { GameGraph, GameGraphRef } from '@/components/graph/GameGraph';
 import { GraphControls } from '@/components/graph/GraphControls';
+import { GraphToolbar } from '@/components/graph/GraphToolbar';
 import {
   loadGraphEdgeStyle,
   saveGraphEdgeStyle,
@@ -139,16 +140,26 @@ function GamePageContent() {
         </div>
       </div>
 
-      <GameGraph
-        ref={graphRef}
-        roles={roles}
-        agreements={agreements}
-        edgeStyle={edgeStyle}
-        graphFilters={graphFilters}
-        currentRoleId={currentRole?.id}
-        onNodeClick={(id) => router.push(`/founder/${id}`)}
-        onEdgeClick={(id) => router.push(`/agreement/${id}`)}
-      />
+      <div className="relative pb-16 md:pb-0">
+        <GameGraph
+          ref={graphRef}
+          roles={roles}
+          agreements={agreements}
+          edgeStyle={edgeStyle}
+          graphFilters={graphFilters}
+          currentRoleId={currentRole?.id}
+          onNodeClick={(id) => router.push(`/founder/${id}`)}
+          onEdgeClick={(id) => router.push(`/agreement/${id}`)}
+        />
+        <GraphToolbar
+          graphFilters={graphFilters}
+          onGraphFiltersChange={setGraphFilters}
+          edgeStyle={edgeStyle}
+          onEdgeStyleChange={handleEdgeStyleChange}
+          onZoomReset={() => graphRef.current?.resetZoom()}
+          onCenterView={() => graphRef.current?.centerView()}
+        />
+      </div>
 
       <GraphControls
         graphFilters={graphFilters}

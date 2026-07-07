@@ -19,6 +19,7 @@ import {
   type GraphFilterState,
   DEFAULT_GRAPH_FILTERS,
 } from '@/lib/graphFilters';
+import { archetypeColor, agreementStatusColor } from '@/lib/graphControlConstants';
 
 interface GameGraphProps {
   roles: Role[];
@@ -36,14 +37,6 @@ export interface GameGraphRef {
   resetZoom: () => void;
   centerView: () => void;
 }
-
-const ARCHETYPE_FILL: Record<string, string> = {
-  funder: '#10B981',
-  builder: '#3B82F6',
-  organizer: '#EAB308',
-  storyteller: '#A855F7',
-  strategist: '#EF4444',
-};
 
 const NODE_RADIUS = 25;
 const NODE_RADIUS_FOCUSED = 30;
@@ -444,20 +437,7 @@ export const GameGraph = forwardRef<GameGraphRef, GameGraphProps>(
         .attr('stroke-width', EDGE_STROKE_WIDTH)
         .style('pointer-events', 'none')
         .style('transition', OPACITY_TRANSITION)
-        .attr('stroke', (d) => {
-          switch (d.status) {
-            case 'proposed':
-              return '#3B82F6';
-            case 'revised':
-              return '#EAB308';
-            case 'approved':
-              return '#39FF14';
-            case 'completed':
-              return '#10B981';
-            default:
-              return '#6B7280';
-          }
-        });
+        .attr('stroke', (d) => agreementStatusColor(d.status))
 
       const node = g
         .append('g')
@@ -467,7 +447,7 @@ export const GameGraph = forwardRef<GameGraphRef, GameGraphProps>(
         .join('circle')
         .attr('class', 'graph-node')
         .attr('r', NODE_RADIUS)
-        .attr('fill', (d) => ARCHETYPE_FILL[d.archetype] ?? '#6B7280')
+        .attr('fill', (d) => archetypeColor(d.archetype))
         .attr('stroke', (d) => (d.id === currentRoleId ? '#39FF14' : '#fff'))
         .attr('stroke-width', (d) => (d.id === currentRoleId ? 3 : 2))
         .style('cursor', 'pointer')

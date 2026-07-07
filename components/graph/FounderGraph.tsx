@@ -6,6 +6,11 @@ import { useRouter } from 'next/navigation';
 import { Role, Agreement, GraphNode, GraphEdge, getGraphNodeHandle, getArchetypeForRole } from '@/lib/types';
 import { getPartyRoleIds, isRoleInAgreement } from '@/lib/agreementHelpers';
 import { assignParallelLinkMeta, layoutForLink, type ArcLayoutLink } from '@/lib/graphArcEdges';
+import {
+  AGREEMENT_STATUS_COLORS,
+  agreementStatusColor,
+  archetypeColor,
+} from '@/lib/graphControlConstants';
 
 interface FounderGraphProps {
   role: Role;
@@ -14,13 +19,7 @@ interface FounderGraphProps {
   className?: string;
 }
 
-const ARCHETYPE_FILL: Record<string, string> = {
-  funder: '#10B981',
-  builder: '#3B82F6',
-  organizer: '#EAB308',
-  storyteller: '#A855F7',
-  strategist: '#EF4444',
-};
+const HIGHLIGHT_ROLE_COLOR = AGREEMENT_STATUS_COLORS.approved;
 
 function founderGraphEdges(role: Role, agreements: Agreement[]): GraphEdge[] {
   const edges: GraphEdge[] = [];
@@ -143,20 +142,7 @@ export function FounderGraph({ role, roles, agreements, className = '' }: Founde
       .append('path')
       .attr('fill', 'none')
       .attr('stroke-width', 2)
-      .attr('stroke', (d) => {
-        switch (d.status) {
-          case 'proposed':
-            return '#3B82F6';
-          case 'revised':
-            return '#EAB308';
-          case 'approved':
-            return '#39FF14';
-          case 'completed':
-            return '#10B981';
-          default:
-            return '#6B7280';
-        }
-      })
+      .attr('stroke', (d) => agreementStatusColor(d.status))
       .attr('stroke-opacity', 0.7)
       .style('cursor', 'pointer')
       .on('click', (event, d) => {
@@ -172,8 +158,8 @@ export function FounderGraph({ role, roles, agreements, className = '' }: Founde
       .append('circle')
       .attr('r', (d) => (d.id === role.id ? 20 : 15))
       .attr('fill', (d) => {
-        if (d.id === role.id) return '#39FF14';
-        return ARCHETYPE_FILL[d.archetype] ?? '#6B7280';
+        if (d.id === role.id) return HIGHLIGHT_ROLE_COLOR;
+        return archetypeColor(d.archetype);
       })
       .attr('stroke', '#fff')
       .attr('stroke-width', (d) => (d.id === role.id ? 3 : 2))

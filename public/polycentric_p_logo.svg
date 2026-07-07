@@ -14,16 +14,18 @@
     <line x1="140.71" y1="135" x2="230.71" y2="55"/>
     <line x1="140.71" y1="280" x2="95.71" y2="320"/>
   </g>
-  <g fill="currentColor" stroke="none">
-    <circle cx="140.71" cy="135" r="8"/>
-    <circle cx="140.71" cy="200" r="8"/>
-    <circle cx="140.71" cy="280" r="8"/>
-    <circle cx="230.71" cy="55" r="8"/>
-    <circle cx="180.71" cy="205" r="8"/>
-    <circle cx="95.71" cy="320" r="8"/>
-    <circle cx="140.71" cy="70" r="17"/>
-    <circle cx="300.71" cy="110" r="17"/>
-    <circle cx="270.71" cy="185" r="17"/>
-    <circle cx="140.71" cy="360" r="17"/>
+  <g stroke="#fff" stroke-width="1.5">
+    <!-- Large nodes: agreement status colors -->
+    <circle cx="140.71" cy="70" r="17" fill="#3B82F6"/>
+    <circle cx="300.71" cy="110" r="17" fill="#EAB308"/>
+    <circle cx="270.71" cy="185" r="17" fill="#39FF14"/>
+    <circle cx="140.71" cy="360" r="17" fill="#10B981"/>
+    <!-- Small nodes: archetype colors -->
+    <circle cx="140.71" cy="135" r="8" fill="#10B981"/>
+    <circle cx="140.71" cy="200" r="8" fill="#3B82F6"/>
+    <circle cx="140.71" cy="280" r="8" fill="#EAB308"/>
+    <circle cx="230.71" cy="55" r="8" fill="#A855F7"/>
+    <circle cx="180.71" cy="205" r="8" fill="#EF4444"/>
+    <circle cx="95.71" cy="320" r="8" fill="#3B82F6"/>
   </g>
 </svg>

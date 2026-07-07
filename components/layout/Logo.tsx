@@ -1,8 +1,28 @@
 import { cn } from '@/lib/utils';
+import {
+  AGREEMENT_STATUS_COLORS,
+  ARCHETYPE_COLORS,
+} from '@/lib/graphControlConstants';
 
 interface LogoProps {
   className?: string;
 }
+
+/** Node colors follow graph legend order: status on large nodes, archetypes on small. */
+const LOGO_NODES: { cx: number; cy: number; r: number; fill: string }[] = [
+  // Large nodes — agreement status colors
+  { cx: 140.71, cy: 70, r: 17, fill: AGREEMENT_STATUS_COLORS.proposed },
+  { cx: 300.71, cy: 110, r: 17, fill: AGREEMENT_STATUS_COLORS.revised },
+  { cx: 270.71, cy: 185, r: 17, fill: AGREEMENT_STATUS_COLORS.approved },
+  { cx: 140.71, cy: 360, r: 17, fill: AGREEMENT_STATUS_COLORS.completed },
+  // Small nodes — archetype colors
+  { cx: 140.71, cy: 135, r: 8, fill: ARCHETYPE_COLORS.funder },
+  { cx: 140.71, cy: 200, r: 8, fill: ARCHETYPE_COLORS.builder },
+  { cx: 140.71, cy: 280, r: 8, fill: ARCHETYPE_COLORS.organizer },
+  { cx: 230.71, cy: 55, r: 8, fill: ARCHETYPE_COLORS.storyteller },
+  { cx: 180.71, cy: 205, r: 8, fill: ARCHETYPE_COLORS.strategist },
+  { cx: 95.71, cy: 320, r: 8, fill: ARCHETYPE_COLORS.builder },
+];
 
 export function Logo({ className }: LogoProps) {
   return (
@@ -26,17 +46,16 @@ export function Logo({ className }: LogoProps) {
         <line x1="140.71" y1="135" x2="230.71" y2="55" />
         <line x1="140.71" y1="280" x2="95.71" y2="320" />
       </g>
-      <g fill="currentColor" stroke="none">
-        <circle cx="140.71" cy="135" r="8" />
-        <circle cx="140.71" cy="200" r="8" />
-        <circle cx="140.71" cy="280" r="8" />
-        <circle cx="230.71" cy="55" r="8" />
-        <circle cx="180.71" cy="205" r="8" />
-        <circle cx="95.71" cy="320" r="8" />
-        <circle cx="140.71" cy="70" r="17" />
-        <circle cx="300.71" cy="110" r="17" />
-        <circle cx="270.71" cy="185" r="17" />
-        <circle cx="140.71" cy="360" r="17" />
+      <g stroke="#fff" strokeWidth={1.5}>
+        {LOGO_NODES.map((node) => (
+          <circle
+            key={`${node.cx}-${node.cy}`}
+            cx={node.cx}
+            cy={node.cy}
+            r={node.r}
+            fill={node.fill}
+          />
+        ))}
       </g>
     </svg>
   );
