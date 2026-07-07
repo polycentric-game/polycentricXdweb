@@ -7,6 +7,7 @@ import { useToastStore } from '@/lib/toastStore';
 import { useKeyboardShortcuts } from '@/lib/useKeyboardShortcuts';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 import { ToastContainer } from '@/components/ui/Toast';
 import './globals.css';
 
@@ -37,9 +38,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <AuthProvider>
-          <div className="min-h-screen bg-white dark:bg-gray-900">
+          <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
             <Header />
-            <main className="container mx-auto px-4 py-8">{children}</main>
+            <main className="container mx-auto px-4 py-8 flex-1">{children}</main>
+            <Footer />
             <ToastContainer toasts={toasts} onClose={removeToast} />
           </div>
         </AuthProvider>
