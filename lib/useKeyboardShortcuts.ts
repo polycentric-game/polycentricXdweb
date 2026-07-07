@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAppStore } from '@/lib/store';
+import { gameNetworkPath } from '@/lib/gameRoutes';
 
 export function useKeyboardShortcuts() {
   const router = useRouter();
+  const currentGame = useAppStore((s) => s.currentGame);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -27,7 +30,7 @@ export function useKeyboardShortcuts() {
         switch (event.key) {
           case '1':
             event.preventDefault();
-            router.push('/game');
+            router.push(currentGame ? gameNetworkPath(currentGame.id) : '/games');
             break;
           case '2':
             event.preventDefault();
@@ -52,5 +55,5 @@ export function useKeyboardShortcuts() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [router]);
+  }, [router, currentGame]);
 }

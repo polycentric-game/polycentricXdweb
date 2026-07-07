@@ -191,14 +191,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   setCurrentGame: async (game) => {
-    if (game) {
-      setStoredGameId(game.id);
-      const { roles, agreements } = await loadRolesAndAgreementsForGame(game);
-      set({ currentGame: game, roles, agreements, currentRole: null });
-    } else {
+    if (!game) {
       clearStoredGameId();
       set({ currentGame: null, currentRole: null, roles: [], agreements: [] });
+      return;
     }
+    await get().switchGame(game);
   },
 
   setCurrentRole: async (role) => {
@@ -258,7 +256,19 @@ export const useAppStore = create<AppState>((set, get) => ({
       const game = get().currentGame ?? (isDemoGame(id) ? DEMO_GAME : await gameStorage.findById(id));
       if (!game) return;
       const { roles, agreements } = await loadRolesAndAgreementsForGame(game);
-      set({ roles, agreements });
+      const state = get();
+      let currentRole = state.currentRole;
+      if (
+        state.currentGame?.id === id &&
+        !currentRole &&
+        state.user &&
+        !isDemoGame(game)
+      ) {
+        currentRole =
+          roles.find((r) => r.userId === state.user!.id) ??
+          (await roleStorage.findByGameAndUser(id, state.user!.id));
+      }
+      set({ roles, agreements, ...(currentRole ? { currentRole } : {}) });
     } catch (error) {
       console.error('Failed to refresh game data:', error);
     }

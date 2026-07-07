@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { AgreementStatus } from '@/lib/types';
-import { ALL_AGREEMENT_STATUSES, type GraphFilterState } from '@/lib/graphFilters';
+import { ALL_AGREEMENT_STATUSES, DEFAULT_GRAPH_FILTERS, type GraphFilterState, countActiveFilterDeviations } from '@/lib/graphFilters';
 import {
   PARTY_SIZE_OPTIONS,
   PAIR_WEIGHT_OPTIONS,
@@ -31,6 +31,15 @@ export function GraphFilterControls({
     onGraphFiltersChange({
       ...graphFilters,
       enabledStatuses: ALL_AGREEMENT_STATUSES.filter((s) => enabled.has(s)),
+    });
+  };
+
+  const filtersAtDefault = countActiveFilterDeviations(graphFilters) === 0;
+
+  const clearFilters = () => {
+    onGraphFiltersChange({
+      ...DEFAULT_GRAPH_FILTERS,
+      enabledStatuses: [...DEFAULT_GRAPH_FILTERS.enabledStatuses],
     });
   };
 
@@ -104,6 +113,18 @@ export function GraphFilterControls({
         <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
           Show only node pairs with at least this many agreements between them.
         </p>
+      </div>
+
+      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={clearFilters}
+          disabled={filtersAtDefault}
+          className="min-h-[44px] md:min-h-0"
+        >
+          Clear filters
+        </Button>
       </div>
     </div>
   );

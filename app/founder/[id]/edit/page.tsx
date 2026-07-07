@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { roleStorage } from '@/lib/storage';
 import { Role, getRoleDisplayName } from '@/lib/types';
+import { gameNetworkPath } from '@/lib/gameRoutes';
 import { validateRoleSelection } from '@/lib/validation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,7 +18,7 @@ interface EditFounderPageProps {
 
 export default function EditFounderPage({ params }: EditFounderPageProps) {
   const router = useRouter();
-  const { session, user, currentRole, updateRole, setCurrentRole, refreshData } = useAppStore();
+  const { session, user, currentGame, currentRole, updateRole, setCurrentRole, refreshData } = useAppStore();
   const [role, setRole] = useState<Role | null>(null);
   const [playerName, setPlayerName] = useState('');
   const [loading, setLoading] = useState(true);
@@ -34,7 +35,7 @@ export default function EditFounderPage({ params }: EditFounderPageProps) {
       try {
         const foundRole = await roleStorage.findById(params.id);
         if (!foundRole) {
-          router.push('/game');
+          router.push(currentGame ? gameNetworkPath(currentGame.id) : '/games');
           return;
         }
 

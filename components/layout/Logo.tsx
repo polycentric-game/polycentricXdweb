@@ -8,13 +8,13 @@ interface LogoProps {
   className?: string;
 }
 
-/** Node colors follow graph legend order: status on large nodes, archetypes on small. */
+/** Node colors: large nodes use status colors (3); bottom large node uses funder archetype. */
 const LOGO_NODES: { cx: number; cy: number; r: number; fill: string }[] = [
   // Large nodes — agreement status colors
   { cx: 140.71, cy: 70, r: 17, fill: AGREEMENT_STATUS_COLORS.proposed },
   { cx: 300.71, cy: 110, r: 17, fill: AGREEMENT_STATUS_COLORS.revised },
   { cx: 270.71, cy: 185, r: 17, fill: AGREEMENT_STATUS_COLORS.approved },
-  { cx: 140.71, cy: 360, r: 17, fill: AGREEMENT_STATUS_COLORS.completed },
+  { cx: 140.71, cy: 360, r: 17, fill: ARCHETYPE_COLORS.funder },
   // Small nodes — archetype colors
   { cx: 140.71, cy: 135, r: 8, fill: ARCHETYPE_COLORS.funder },
   { cx: 140.71, cy: 200, r: 8, fill: ARCHETYPE_COLORS.builder },

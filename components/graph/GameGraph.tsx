@@ -8,6 +8,7 @@ import { Role, Agreement, GraphNode, getGraphNodeHandle, getArchetypeForRole } f
 import { Button } from '@/components/ui/Button';
 import {
   layoutForLink,
+  DEFAULT_GRAPH_EDGE_STYLE,
   type ArcLayoutLink,
   type GraphEdgeStyle,
   graphNodeId,
@@ -100,7 +101,7 @@ export const GameGraph = forwardRef<GameGraphRef, GameGraphProps>(
     {
       roles,
       agreements,
-      edgeStyle = 'symmetric-arc',
+      edgeStyle = DEFAULT_GRAPH_EDGE_STYLE,
       graphFilters = DEFAULT_GRAPH_FILTERS,
       currentRoleId,
       onNodeClick,

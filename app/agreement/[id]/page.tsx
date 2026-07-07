@@ -8,10 +8,8 @@ import { findDemoAgreement, getDemoGameData, isDemoGame } from '@/lib/demoGame';
 import {
   canApproveAgreement,
   canReviseAgreement,
-  completeAgreement,
   approveAgreement,
 } from '@/lib/agreements';
-import { exportAgreement } from '@/lib/export';
 import { toast } from '@/lib/toastStore';
 import { Agreement, getRoleDisplayName } from '@/lib/types';
 import { getCommitment, getPartyRoleIds, isRoleInAgreement, partyCount } from '@/lib/agreementHelpers';
@@ -108,57 +106,17 @@ export default function AgreementPage({ params }: AgreementPageProps) {
         updateAgreement(result.agreement);
         refreshData();
         setAgreement(result.agreement);
-        toast.success('Approved', 'Your approval has been recorded.');
+        toast.success(
+          result.agreement.status === 'approved' ? 'Fully approved' : 'Approved',
+          result.agreement.status === 'approved'
+            ? 'All parties have approved this agreement.'
+            : 'Your approval has been recorded.'
+        );
       } else {
         toast.error('Approval Failed', result.error || 'Failed to approve agreement');
       }
     } catch (error: any) {
       toast.error('Error', error?.message || 'An unexpected error occurred');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleComplete = async () => {
-    if (!currentRole) {
-      toast.error('Error', 'You need an active role in a game to complete agreements');
-      return;
-    }
-
-    setActionLoading('complete');
-    try {
-      const result = await completeAgreement(agreement.id, currentRole.id);
-      if (result.success && result.agreement) {
-        updateAgreement(result.agreement);
-        setAgreement(result.agreement);
-        toast.success(
-          'Agreement Completed!',
-          'This agreement has been marked as completed and is ready for implementation.'
-        );
-      } else {
-        toast.error('Completion Failed', result.error || 'Failed to complete agreement');
-      }
-    } catch {
-      toast.error('Error', 'An unexpected error occurred while completing the agreement');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleExport = async () => {
-    setActionLoading('export');
-    try {
-      const result = await exportAgreement(agreement);
-      if (result.success) {
-        toast.success(
-          'Export Successful!',
-          'Agreement has been exported as JSON. Check your downloads folder.'
-        );
-      } else {
-        toast.error('Export Failed', result.error || 'Failed to export agreement');
-      }
-    } catch {
-      toast.error('Error', 'An unexpected error occurred while exporting the agreement');
     } finally {
       setActionLoading(null);
     }
@@ -315,26 +273,6 @@ export default function AgreementPage({ params }: AgreementPageProps) {
           <Button variant="secondary" onClick={() => router.push('/agreements')}>
             Back to Agreements
           </Button>
-
-          {(agreement.finalizedAt || agreement.status === 'completed') && isInvolved && !isDemo && (
-            <>
-              {agreement.status === 'completed' && (
-                <Button onClick={handleExport} loading={actionLoading === 'export'}>
-                  Export for signet
-                </Button>
-              )}
-            </>
-          )}
-
-          {agreement.status === 'approved' && isInvolved && !isDemo && (
-            <Button
-              variant="secondary"
-              onClick={handleComplete}
-              loading={actionLoading === 'complete'}
-            >
-              Mark as Completed
-            </Button>
-          )}
 
           {canApprove && isInvolved && (
             <Button onClick={handleApprove} loading={actionLoading === 'approve'}>

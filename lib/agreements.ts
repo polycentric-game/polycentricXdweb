@@ -87,8 +87,8 @@ export async function proposeRevision(
     return { success: false, error: 'You are not authorized to revise this agreement' };
   }
 
-  if (normalized.status === 'completed') {
-    return { success: false, error: 'Cannot revise completed agreements' };
+  if (normalized.status === 'approved') {
+    return { success: false, error: 'Cannot revise approved agreements' };
   }
 
   if (!signature) {
@@ -135,8 +135,8 @@ export async function approveAgreement(
     return { success: false, error: 'You are not authorized to approve this agreement' };
   }
 
-  if (normalized.status === 'completed') {
-    return { success: false, error: 'Agreement is already completed' };
+  if (normalized.status === 'approved') {
+    return { success: false, error: 'Agreement is already fully approved' };
   }
 
   const currentVersion = normalized.versions[normalized.currentVersion];
@@ -180,43 +180,6 @@ export async function approveAgreement(
   return { success: true, agreement: normalizeAgreement(saved) };
 }
 
-export async function completeAgreement(
-  agreementId: string,
-  roleId: string
-): Promise<{ success: boolean; agreement?: Agreement; error?: string }> {
-  const agreement = await agreementStorage.findById(agreementId);
-  if (!agreement) {
-    return { success: false, error: 'Agreement not found' };
-  }
-  const normalized = normalizeAgreement(agreement);
-
-  if (!isRoleInAgreement(normalized, roleId)) {
-    return { success: false, error: 'You are not authorized to complete this agreement' };
-  }
-
-  if (normalized.status !== 'approved') {
-    return { success: false, error: 'Agreement must be approved before completion' };
-  }
-
-  const currentVersion = normalized.versions[normalized.currentVersion];
-  const partyRoleIds = getPartyRoleIds(normalized);
-  if (!currentVersion || !allPartiesApproved(currentVersion, partyRoleIds)) {
-    return {
-      success: false,
-      error: 'All parties must sign the agreement before it can be completed',
-    };
-  }
-
-  const updatedAgreement: Agreement = {
-    ...normalized,
-    status: 'completed',
-    updatedAt: new Date().toISOString(),
-  };
-
-  const saved = await agreementStorage.save(updatedAgreement);
-  return { success: true, agreement: normalizeAgreement(saved) };
-}
-
 export function getStatusColor(status: AgreementStatus): string {
   switch (status) {
     case 'proposed':
@@ -225,8 +188,6 @@ export function getStatusColor(status: AgreementStatus): string {
       return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20';
     case 'approved':
       return 'text-primary bg-primary/10';
-    case 'completed':
-      return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20';
     default:
       return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/20';
   }
@@ -237,7 +198,7 @@ export function getAgreementLabel(agreement: Agreement): string {
 }
 
 export function canApproveAgreement(agreement: Agreement, roleId: string): boolean {
-  if (agreement.status === 'completed') return false;
+  if (agreement.status === 'approved') return false;
   if (!isRoleInAgreement(agreement, roleId)) return false;
 
   const currentVersion = agreement.versions[agreement.currentVersion];
@@ -247,7 +208,7 @@ export function canApproveAgreement(agreement: Agreement, roleId: string): boole
 }
 
 export function canReviseAgreement(agreement: Agreement, roleId: string): boolean {
-  if (agreement.status === 'completed') return false;
+  if (agreement.status === 'approved') return false;
   return isRoleInAgreement(agreement, roleId);
 }
 

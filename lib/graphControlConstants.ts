@@ -6,7 +6,6 @@ export const AGREEMENT_STATUS_COLORS: Record<AgreementStatus, string> = {
   proposed: '#3B82F6',
   revised: '#EAB308',
   approved: '#39FF14',
-  completed: '#10B981',
 };
 
 /** Node fill colors — must match GameGraph / FounderGraph SVG fills. */
@@ -38,7 +37,6 @@ export const STATUS_OPTIONS: {
   { value: 'proposed', label: 'Proposed', color: AGREEMENT_STATUS_COLORS.proposed },
   { value: 'revised', label: 'Revised', color: AGREEMENT_STATUS_COLORS.revised },
   { value: 'approved', label: 'Approved', color: AGREEMENT_STATUS_COLORS.approved },
-  { value: 'completed', label: 'Completed', color: AGREEMENT_STATUS_COLORS.completed },
 ];
 
 export const PARTY_SIZE_OPTIONS = [2, 3, 4, 5, 6] as const;

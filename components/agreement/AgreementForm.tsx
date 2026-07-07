@@ -134,14 +134,6 @@ export function AgreementForm({
       return;
     }
 
-    if (existingAgreement) {
-      setErrors({
-        general: 'An agreement with this exact group of roles already exists. Propose a revision on that agreement instead.',
-      });
-      setSubmitting(false);
-      return;
-    }
-
     try {
       let result;
       if (agreement) {
@@ -202,6 +194,7 @@ export function AgreementForm({
               <a href={`/agreement/${existingAgreement.id}`} className="underline font-medium">
                 View existing agreement
               </a>
+              {' '}You can still propose another with this group.
             </p>
           </div>
         )}
@@ -312,7 +305,7 @@ export function AgreementForm({
             <Button
               type="submit"
               loading={submitting || isLoading}
-              disabled={Boolean(existingAgreement) || (!isRevision && selectedCounterpartyIds.length === 0)}
+              disabled={!isRevision && selectedCounterpartyIds.length === 0}
             >
               {isRevision ? 'Propose Revision' : 'Propose Agreement'}
             </Button>

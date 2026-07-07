@@ -6,8 +6,10 @@ import Link from 'next/link';
 import { useAppStore } from '@/lib/store';
 import { roleTemplateStorage } from '@/lib/storage';
 import { claimRoleInGame } from '@/lib/games';
+import { gameNetworkPath } from '@/lib/gameRoutes';
 import { DEMO_GAME, getDemoGameData, isDemoGame } from '@/lib/demoGame';
 import { RoleBrowser, RoleTemplateWithId } from '@/components/role/RoleBrowser';
+import { GamePlayerRoster } from '@/components/role/GamePlayerRoster';
 import { ROLE_TEMPLATES } from '@/lib/roleTemplates';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -28,9 +30,7 @@ export default function GameClaimRolePage() {
     user,
     roles,
     isLoading: appIsLoading,
-    enterGame,
-    refreshGameData,
-    setCurrentGame,
+    switchGame,
   } = useAppStore();
 
   const [templates, setTemplates] = useState<RoleTemplateWithId[]>(LOCAL_TEMPLATES);
@@ -38,6 +38,7 @@ export default function GameClaimRolePage() {
   const [isClaiming, setIsClaiming] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
   const [gameTitle, setGameTitle] = useState<string | null>(null);
+  const [enteringGame, setEnteringGame] = useState(false);
 
   useEffect(() => {
     if (appIsLoading) return;
@@ -50,7 +51,7 @@ export default function GameClaimRolePage() {
     async function loadGame() {
       if (isDemoGame(gameId)) {
         setGameTitle(DEMO_GAME.title);
-        await setCurrentGame(DEMO_GAME);
+        await switchGame(DEMO_GAME);
         return;
       }
       const { gameStorage } = await import('@/lib/storage');
@@ -60,11 +61,10 @@ export default function GameClaimRolePage() {
         return;
       }
       setGameTitle(game.title);
-      await setCurrentGame(game);
-      await refreshGameData(gameId);
+      await switchGame(game);
     }
     loadGame();
-  }, [gameId, router, setCurrentGame, refreshGameData]);
+  }, [gameId, router, switchGame]);
 
   useEffect(() => {
     roleTemplateStorage
@@ -99,16 +99,29 @@ export default function GameClaimRolePage() {
         const { gameStorage } = await import('@/lib/storage');
         const game = await gameStorage.findById(gameId);
         if (game) {
-          await refreshGameData(gameId);
-          await enterGame(game, result.role);
-          router.push('/game');
+          await switchGame(game);
+          router.replace(gameNetworkPath(gameId));
         }
       } else {
         setClaimError(result.error ?? 'Failed to claim role');
       }
     },
-    [user, gameId, enterGame, refreshGameData, router]
+    [user, gameId, switchGame, router]
   );
+
+  const handleEnterGame = useCallback(async () => {
+    setEnteringGame(true);
+    try {
+      const { gameStorage } = await import('@/lib/storage');
+      const game =
+        useAppStore.getState().currentGame ?? (await gameStorage.findById(gameId));
+      if (!game) return;
+      await switchGame(game);
+      router.replace(gameNetworkPath(gameId));
+    } finally {
+      setEnteringGame(false);
+    }
+  }, [gameId, switchGame, router]);
 
   if (appIsLoading || !session || !user) {
     return (
@@ -120,18 +133,14 @@ export default function GameClaimRolePage() {
 
   if (myRole) {
     return (
-      <div className="max-w-lg mx-auto space-y-6 text-center">
-        <h1 className="font-space-grotesk font-bold text-2xl text-gray-900 dark:text-gray-100">
-          {gameTitle ?? 'Game'}
-        </h1>
-        <Card className="space-y-4">
-          <p className="text-gray-600 dark:text-gray-300">
-            You already have a role in this game:{' '}
-            <strong>{myRole.template?.name ?? 'Your role'}</strong>
-          </p>
-          <Button onClick={() => router.push('/game')}>Enter game</Button>
-        </Card>
-      </div>
+      <GamePlayerRoster
+        gameTitle={gameTitle ?? 'Game'}
+        roles={gameRoles}
+        currentUserId={user.id}
+        myRole={myRole}
+        onEnterGame={handleEnterGame}
+        entering={enteringGame}
+      />
     );
   }
 
@@ -145,7 +154,7 @@ export default function GameClaimRolePage() {
             players. Role claiming is disabled in the demo game.
           </p>
           <div className="flex gap-2">
-            <Button size="sm" onClick={() => router.push('/game')}>
+            <Button size="sm" onClick={() => router.replace(gameNetworkPath(gameId))}>
               Back to network
             </Button>
             <Link href="/games">

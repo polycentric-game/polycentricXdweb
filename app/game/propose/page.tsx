@@ -8,6 +8,7 @@ import { AgreementForm } from '@/components/agreement/AgreementForm';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { isDemoGame } from '@/lib/demoGame';
+import { gameNetworkPath } from '@/lib/gameRoutes';
 import { getRoleDisplayName } from '@/lib/types';
 
 function ProposeAgreementContent() {
@@ -100,7 +101,7 @@ function ProposeAgreementContent() {
             At least one other player needs to claim a role in {currentGame.title} before you can
             propose an agreement.
           </p>
-          <Link href="/game">
+          <Link href={gameNetworkPath(currentGame.id)}>
             <Button variant="secondary">Back to network</Button>
           </Link>
         </Card>
@@ -112,7 +113,7 @@ function ProposeAgreementContent() {
     <div className="space-y-6">
       <div>
         <Link
-          href="/game"
+          href={gameNetworkPath(currentGame.id)}
           className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary mb-2 inline-block"
         >
           ← Back to network
@@ -135,7 +136,7 @@ function ProposeAgreementContent() {
       <AgreementForm
         defaultCounterpartyRoleIds={withRoleId ? [withRoleId] : []}
         onSubmit={(agreement) => router.push(`/agreement/${agreement.id}`)}
-        onCancel={() => router.push('/game')}
+        onCancel={() => router.push(gameNetworkPath(currentGame.id))}
       />
     </div>
   );

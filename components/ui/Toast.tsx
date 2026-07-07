@@ -53,22 +53,22 @@ export function ToastComponent({ toast, onClose }: ToastProps) {
       className={cn(
         'transform transition-all duration-300 ease-in-out',
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0',
-        'max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden',
+        'w-[min(100vw-2rem,24rem)] sm:w-96 bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden',
         'dark:bg-gray-800'
       )}
     >
       <div className={cn('p-4 border-l-4', styles[toast.type])}>
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 pt-0.5">
             <Icon className="h-5 w-5" />
           </div>
-          <div className="ml-3 w-0 flex-1">
-            <p className="text-sm font-medium">{toast.title}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium leading-snug">{toast.title}</p>
             {toast.message && (
-              <p className="mt-1 text-sm opacity-90">{toast.message}</p>
+              <p className="mt-1.5 text-sm leading-relaxed opacity-90">{toast.message}</p>
             )}
           </div>
-          <div className="ml-4 flex-shrink-0 flex">
+          <div className="flex-shrink-0">
             <button
               className="inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               onClick={() => {
@@ -92,7 +92,7 @@ interface ToastContainerProps {
 
 export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
+    <div className="fixed top-4 right-4 z-50 flex w-[min(100vw-2rem,24rem)] sm:w-96 flex-col items-stretch space-y-2">
       {toasts.map((toast) => (
         <ToastComponent key={toast.id} toast={toast} onClose={onClose} />
       ))}

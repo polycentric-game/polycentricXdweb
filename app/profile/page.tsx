@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { signOut } from '@/lib/auth';
+import { gameNetworkPath } from '@/lib/gameRoutes';
 import { getRoleDisplayName } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -66,7 +67,7 @@ export default function ProfilePage() {
               Role: <strong>{getRoleDisplayName(currentRole)}</strong>
             </p>
             <div className="flex flex-wrap gap-2">
-              <Link href="/game">
+              <Link href={gameNetworkPath(currentGame.id)}>
                 <Button size="sm">Enter game</Button>
               </Link>
               <Button

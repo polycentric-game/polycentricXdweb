@@ -110,7 +110,7 @@ export function FounderGraph({ role, roles, agreements, className = '' }: Founde
     const edges = assignParallelLinkMeta(founderGraphEdges(role, roleAgreements));
 
     const updateEdgeLayout = () => {
-      link.attr('d', (d) => layoutForLink(d, 'symmetric-arc').path);
+      link.attr('d', (d) => layoutForLink(d, 'arc-fan').path);
     };
 
     if (nodes.length === 1) {

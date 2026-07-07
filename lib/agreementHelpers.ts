@@ -51,8 +51,11 @@ export function normalizeVersion(version: LegacyVersion, partyRoleIds: string[])
 
 export function normalizeAgreement(agreement: Agreement): Agreement {
   const partyRoleIds = getPartyRoleIds(agreement);
+  const status =
+    (agreement.status as string) === 'completed' ? 'approved' : agreement.status;
   return {
     ...agreement,
+    status,
     partyRoleIds,
     versions: agreement.versions.map((v) => normalizeVersion(v, partyRoleIds)),
   };

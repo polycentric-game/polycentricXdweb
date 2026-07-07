@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { isDemoGame } from '@/lib/demoGame';
+import { gameNetworkPath } from '@/lib/gameRoutes';
 import { ChevronDown, Plus } from 'lucide-react';
 
 interface GameSwitcherProps {
@@ -38,7 +39,7 @@ export function GameSwitcher({ onNavigate }: GameSwitcherProps) {
     await switchGame(game);
     setOpen(false);
     onNavigate?.();
-    router.push('/game');
+    router.replace(gameNetworkPath(game.id));
   };
 
   return (

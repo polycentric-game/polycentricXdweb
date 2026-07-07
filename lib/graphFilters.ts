@@ -7,7 +7,6 @@ export const ALL_AGREEMENT_STATUSES: AgreementStatus[] = [
   'proposed',
   'revised',
   'approved',
-  'completed',
 ];
 
 export interface GraphFilterState {

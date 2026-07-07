@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppStore } from '@/lib/store';
 import { createGame, getPlayerCount } from '@/lib/games';
+import { gameNetworkPath } from '@/lib/gameRoutes';
 import { getAuthSessionAndUser } from '@/lib/auth';
 import { gameStorage } from '@/lib/storage';
 import { DEMO_GAME, getDemoGameData, isDemoGame } from '@/lib/demoGame';
@@ -95,7 +96,7 @@ export default function GamesPage() {
   const handleJoin = async (gameId: string) => {
     if (isDemoGame(gameId)) {
       await switchGame(DEMO_GAME);
-      router.push('/game');
+      router.replace(gameNetworkPath(DEMO_GAME.id));
       return;
     }
 
@@ -110,7 +111,7 @@ export default function GamesPage() {
       const existingRole = await roleStorage.findByGameAndUser(gameId, user.id);
       if (existingRole) {
         await enterGame(game, existingRole);
-        router.push('/game');
+        router.replace(gameNetworkPath(gameId));
         return;
       }
     }
@@ -120,7 +121,7 @@ export default function GamesPage() {
 
   const handleViewDemo = async () => {
     await switchGame(DEMO_GAME);
-    router.push('/game');
+    router.replace(gameNetworkPath(DEMO_GAME.id));
   };
 
   const realGames = games.filter((g) => !isDemoGame(g));
@@ -151,7 +152,7 @@ export default function GamesPage() {
             You&apos;re in <strong>{currentGame.title}</strong> as{' '}
             <strong>{currentRole.template?.name ?? 'your role'}</strong>.
           </p>
-          <Link href="/game">
+          <Link href={gameNetworkPath(currentGame.id)}>
             <Button size="sm">Enter game</Button>
           </Link>
         </Card>

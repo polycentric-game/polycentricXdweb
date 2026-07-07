@@ -7,6 +7,7 @@ import { roleStorage } from '@/lib/storage';
 import { findDemoRole, getDemoGameData, isDemoGame } from '@/lib/demoGame';
 import { Role, getRoleDisplayName, getRoleSubtitle, getArchetypeForRole } from '@/lib/types';
 import { getArchetypeLabel } from '@/lib/roleTemplates';
+import { gameNetworkPath } from '@/lib/gameRoutes';
 import { getAgreementDisplayNumber } from '@/lib/utils';
 import { getPartyRoleIds, isRoleInAgreement } from '@/lib/agreementHelpers';
 import { Card } from '@/components/ui/Card';
@@ -61,7 +62,13 @@ export default function FounderPage({ params }: FounderPageProps) {
         <p className="text-gray-600 dark:text-gray-300 mb-6">
           The role profile you&apos;re looking for doesn&apos;t exist.
         </p>
-        <Button onClick={() => router.push('/game')}>Back to Network</Button>
+        <Button
+          onClick={() =>
+            router.push(currentGame ? gameNetworkPath(currentGame.id) : '/games')
+          }
+        >
+          Back to Network
+        </Button>
       </div>
     );
   }

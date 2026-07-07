@@ -1,19 +1,14 @@
 import type { GraphEdge, GraphNode } from './types';
 
-export type GraphEdgeStyle = 'straight' | 'arc-fan' | 'symmetric-arc';
+export type GraphEdgeStyle = 'straight' | 'arc-fan';
 
-export const DEFAULT_GRAPH_EDGE_STYLE: GraphEdgeStyle = 'symmetric-arc';
+export const DEFAULT_GRAPH_EDGE_STYLE: GraphEdgeStyle = 'arc-fan';
 
 export const GRAPH_EDGE_STYLE_OPTIONS: {
   value: GraphEdgeStyle;
   label: string;
   description: string;
 }[] = [
-  {
-    value: 'symmetric-arc',
-    label: 'Symmetric arcs',
-    description: 'Parallel edges fan symmetrically from a near-straight center edge',
-  },
   {
     value: 'arc-fan',
     label: 'Arc fan',
@@ -31,6 +26,9 @@ const GRAPH_EDGE_STYLE_STORAGE_KEY = 'graph-edge-style';
 export function loadGraphEdgeStyle(): GraphEdgeStyle {
   if (typeof window === 'undefined') return DEFAULT_GRAPH_EDGE_STYLE;
   const stored = localStorage.getItem(GRAPH_EDGE_STYLE_STORAGE_KEY);
+  if (stored === 'symmetric-arc') {
+    return DEFAULT_GRAPH_EDGE_STYLE;
+  }
   if (stored && GRAPH_EDGE_STYLE_OPTIONS.some((o) => o.value === stored)) {
     return stored as GraphEdgeStyle;
   }
@@ -88,9 +86,6 @@ export function assignParallelLinkMeta(edges: GraphEdge[]): ArcLayoutLink[] {
 
 const MIN_ARC_RADIUS = 24;
 
-/** dr = distance × multiplier; larger multiplier → gentler bow. */
-const SYMMETRIC_TIER_RADIUS_MULTIPLIERS = [10, 4, 2.5, 1.8] as const;
-
 export interface EdgeGeometry {
   path: string;
   midX: number;
@@ -104,23 +99,6 @@ export function midPointOnPath(pathEl: SVGPathElement): { x: number; y: number }
     return { x: 0, y: 0 };
   }
   return pathEl.getPointAtLength(length / 2);
-}
-
-function tierForLinknum(linknum: number): number {
-  return Math.ceil(linknum / 2);
-}
-
-function drForSymmetricTier(tier: number, linkTotal: number, distance: number): number {
-  if (linkTotal <= 1) {
-    return Math.max(MIN_ARC_RADIUS, distance * SYMMETRIC_TIER_RADIUS_MULTIPLIERS[0]);
-  }
-  // Two parallels: matched gentle bow on opposite sides (no center tier).
-  const effectiveTier = linkTotal === 2 ? 1 : tier;
-  const multiplier =
-    SYMMETRIC_TIER_RADIUS_MULTIPLIERS[effectiveTier] ??
-    Math.max(1.5, 1.8 - (effectiveTier - 3) * 0.15);
-  const minValid = distance / 2 + 2;
-  return Math.max(MIN_ARC_RADIUS, distance * multiplier, minValid);
 }
 
 const BASE_CURVATURE = 1.5;
@@ -171,8 +149,7 @@ function computeArcGeometry(
   source: GraphNode,
   target: GraphNode,
   linknum: number,
-  linkTotal: number,
-  style: 'arc-fan' | 'symmetric-arc'
+  linkTotal: number
 ): EdgeGeometry {
   const sx = source.x!;
   const sy = source.y!;
@@ -180,12 +157,7 @@ function computeArcGeometry(
   const ty = target.y!;
   const distance = Math.hypot(tx - sx, ty - sy) || 1;
   const sweep: 0 | 1 = linknum % 2 === 0 ? 0 : 1;
-
-  const dr =
-    style === 'symmetric-arc'
-      ? drForSymmetricTier(tierForLinknum(linknum), linkTotal, distance)
-      : drForArcFan(linknum, linkTotal, distance);
-
+  const dr = drForArcFan(linknum, linkTotal, distance);
   const path = `M${sx},${sy} A${dr},${dr} 0 0,${sweep} ${tx},${ty}`;
 
   return {
@@ -207,7 +179,7 @@ export function layoutForLink(link: ArcLayoutLink, style: GraphEdgeStyle): EdgeG
     return computeStraightGeometry(source, target);
   }
 
-  return computeArcGeometry(source, target, link.linknum, link.linkTotal, style);
+  return computeArcGeometry(source, target, link.linknum, link.linkTotal);
 }
 
 /** @deprecated Use layoutForLink(link, 'arc-fan') */

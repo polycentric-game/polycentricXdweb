@@ -14,7 +14,7 @@ export const DEMO_GAME: Game = {
 };
 
 const AGREEMENT_COUNT = 100;
-const STATUSES: AgreementStatus[] = ['proposed', 'revised', 'approved', 'completed'];
+const STATUSES: AgreementStatus[] = ['proposed', 'revised', 'approved'];
 
 /** 31 diverse first names for demo player handles (one per role template). */
 const DEMO_PLAYER_NAMES = [

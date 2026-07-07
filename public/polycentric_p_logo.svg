@@ -15,7 +15,7 @@
     <line x1="140.71" y1="280" x2="95.71" y2="320"/>
   </g>
   <g stroke="#fff" stroke-width="1.5">
-    <!-- Large nodes: agreement status colors -->
+    <!-- Large nodes: proposed, revised, approved + funder archetype -->
     <circle cx="140.71" cy="70" r="17" fill="#3B82F6"/>
     <circle cx="300.71" cy="110" r="17" fill="#EAB308"/>
     <circle cx="270.71" cy="185" r="17" fill="#39FF14"/>

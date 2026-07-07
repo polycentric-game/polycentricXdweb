@@ -54,7 +54,7 @@ export interface AgreementVersion {
   partyBCommitment?: string;
 }
 
-export type AgreementStatus = 'proposed' | 'revised' | 'approved' | 'completed';
+export type AgreementStatus = 'proposed' | 'revised' | 'approved';
 
 export interface Agreement {
   id: string;
@@ -99,28 +99,6 @@ export interface GraphEdge {
   source: string | GraphNode;
   target: string | GraphNode;
   status: AgreementStatus;
-}
-
-// Signet export format
-export interface SignetExport {
-  agreementId: string;
-  exportedAt: string;
-  parties: Array<{
-    roleId: string;
-    roleName: string;
-    playerName?: string;
-    commitment: string;
-  }>;
-  terms: {
-    commitments: Record<string, string>;
-    agreementNotes: string;
-  };
-  signatures: Array<{
-    roleId: string;
-    name: string;
-    signedAt: string;
-  }>;
-  legalText: string;
 }
 
 export interface ValidationError {

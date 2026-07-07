@@ -111,7 +111,7 @@ export default function AgreementsPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4">
           <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {listedAgreements.length}
@@ -129,12 +129,6 @@ export default function AgreementsPage() {
             {listedAgreements.filter((a) => a.status === 'approved').length}
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-300">Approved</div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-2xl font-bold text-green-600">
-            {listedAgreements.filter((a) => a.status === 'completed').length}
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-300">Completed</div>
         </Card>
       </div>
 

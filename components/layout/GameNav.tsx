@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { gameNetworkPath } from '@/lib/gameRoutes';
 
-function isNetworkActive(pathname: string): boolean {
+function isNetworkActive(pathname: string, gameId: string): boolean {
   return (
+    pathname === gameNetworkPath(gameId) ||
     pathname === '/game' ||
     pathname.startsWith('/game/') ||
     pathname.startsWith('/founder/')
@@ -35,9 +37,9 @@ export function GameNav({ isMobile = false, onLinkClick }: GameNavProps) {
 
   const items = [
     {
-      href: '/game',
+      href: gameNetworkPath(currentGame.id),
       label: 'Network',
-      active: isNetworkActive(pathname),
+      active: isNetworkActive(pathname, currentGame.id),
     },
     {
       href: `/games/${currentGame.id}/claim-role`,
